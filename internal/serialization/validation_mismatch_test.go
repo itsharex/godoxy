@@ -1,24 +1,23 @@
 package serialization
 
 import (
+	"errors"
 	"reflect"
 	"testing"
-
-	gperr "github.com/yusing/goutils/errs"
 )
 
 // Test cases for when *T implements CustomValidator but T is passed in
 type CustomValidatingInt int
 
-func (c *CustomValidatingInt) Validate() gperr.Error {
+func (c *CustomValidatingInt) Validate() error {
 	if c == nil {
-		return gperr.New("pointer int cannot be nil")
+		return errors.New("pointer int cannot be nil")
 	}
 	if *c <= 0 {
-		return gperr.New("int must be positive")
+		return errors.New("int must be positive")
 	}
 	if *c > 100 {
-		return gperr.New("int must be <= 100")
+		return errors.New("int must be <= 100")
 	}
 	return nil
 }
@@ -26,12 +25,12 @@ func (c *CustomValidatingInt) Validate() gperr.Error {
 // Test cases for when T implements CustomValidator but *T is passed in
 type CustomValidatingFloat float64
 
-func (c CustomValidatingFloat) Validate() gperr.Error {
+func (c CustomValidatingFloat) Validate() error {
 	if c < 0 {
-		return gperr.New("float must be non-negative")
+		return errors.New("float must be non-negative")
 	}
 	if c > 1000 {
-		return gperr.New("float must be <= 1000")
+		return errors.New("float must be <= 1000")
 	}
 	return nil
 }

@@ -1,25 +1,24 @@
 package serialization
 
 import (
+	"errors"
 	"reflect"
 	"testing"
-
-	gperr "github.com/yusing/goutils/errs"
 )
 
 type CustomValidatingPointerStruct struct {
 	Value string
 }
 
-func (c *CustomValidatingPointerStruct) Validate() gperr.Error {
+func (c *CustomValidatingPointerStruct) Validate() error {
 	if c == nil {
-		return gperr.New("pointer struct cannot be nil")
+		return errors.New("pointer struct cannot be nil")
 	}
 	if c.Value == "" {
-		return gperr.New("value cannot be empty")
+		return errors.New("value cannot be empty")
 	}
 	if len(c.Value) < 3 {
-		return gperr.New("value must be at least 3 characters")
+		return errors.New("value must be at least 3 characters")
 	}
 	return nil
 }

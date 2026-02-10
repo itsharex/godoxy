@@ -54,7 +54,7 @@ func ParseLabels(labels map[string]string, aliases ...string) (types.LabelMap, e
 				// Move deeper into the nested map
 				m, ok := currentMap[k].(types.LabelMap)
 				if !ok && currentMap[k] != "" {
-					errs.Add(gperr.Errorf("expect mapping, got %T", currentMap[k]).Subject(lbl))
+					errs.AddSubject(fmt.Errorf("expect mapping, got %T", currentMap[k]), lbl)
 					continue
 				} else if !ok {
 					m = make(types.LabelMap)
@@ -83,15 +83,7 @@ func ExpandWildcard(labels map[string]string, aliases ...string) {
 		}
 		// lbl is "proxy.X..." where X is alias or wildcard
 		rest := lbl[len(nsProxyDot):] // "X..." or "X.suffix"
-		dotIdx := strings.IndexByte(rest, '.')
-		var alias, suffix string
-		if dotIdx == -1 {
-			alias = rest
-		} else {
-			alias = rest[:dotIdx]
-			suffix = rest[dotIdx+1:]
-		}
-
+		alias, suffix, _ := strings.Cut(rest, ".")
 		if alias == WildcardAlias {
 			delete(labels, lbl)
 			if suffix == "" || strings.Count(value, "\n") > 1 {
@@ -121,15 +113,10 @@ func ExpandWildcard(labels map[string]string, aliases ...string) {
 			continue
 		}
 		rest := lbl[len(nsProxyDot):]
-		dotIdx := strings.IndexByte(rest, '.')
-		if dotIdx == -1 {
+		alias, suffix, ok := strings.Cut(rest, ".")
+		if !ok || alias == "" || alias[0] == '#' {
 			continue
 		}
-		alias := rest[:dotIdx]
-		if alias[0] == '#' {
-			continue
-		}
-		suffix := rest[dotIdx+1:]
 
 		idx, known := aliasSet[alias]
 		if !known {

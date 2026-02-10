@@ -1,23 +1,22 @@
 package serialization
 
 import (
+	"errors"
 	"reflect"
 	"testing"
-
-	gperr "github.com/yusing/goutils/errs"
 )
 
 type CustomValidatingPointerString string
 
-func (c *CustomValidatingPointerString) Validate() gperr.Error {
+func (c *CustomValidatingPointerString) Validate() error {
 	if c == nil {
-		return gperr.New("pointer string cannot be nil")
+		return errors.New("pointer string cannot be nil")
 	}
 	if *c == "" {
-		return gperr.New("string cannot be empty")
+		return errors.New("string cannot be empty")
 	}
 	if len(*c) < 2 {
-		return gperr.New("string must be at least 2 characters")
+		return errors.New("string must be at least 2 characters")
 	}
 	return nil
 }

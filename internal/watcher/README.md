@@ -40,7 +40,7 @@ Alias to `events.Event` for convenience.
 type Watcher interface {
     // Events returns channels for receiving events and errors.
     // The channels are closed when the context is cancelled.
-    Events(ctx context.Context) (<-chan Event, <-chan gperr.Error)
+    Events(ctx context.Context) (<-chan Event, <-chan error)
 }
 ```
 

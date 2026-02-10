@@ -13,11 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/yusing/godoxy/internal/common"
 	. "github.com/yusing/godoxy/internal/entrypoint"
-	entrypoint "github.com/yusing/godoxy/internal/entrypoint/types"
 	"github.com/yusing/godoxy/internal/route"
 	routeTypes "github.com/yusing/godoxy/internal/route/types"
 	"github.com/yusing/godoxy/internal/types"
-	"github.com/yusing/goutils/task"
 )
 
 type noopResponseWriter struct {
@@ -50,15 +48,13 @@ func (t noopTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func BenchmarkEntrypointReal(b *testing.B) {
-	task := task.GetTestTask(b)
-	ep := NewEntrypoint(task, nil)
+	ep := NewTestEntrypoint(b, nil)
 	req := http.Request{
-		Method: "GET",
+		Method: http.MethodGet,
 		URL:    &url.URL{Path: "/", RawPath: "/"},
 		Host:   "test.domain.tld",
 	}
 	ep.SetFindRouteDomains([]string{})
-	entrypoint.SetCtx(task, ep)
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", "1")
@@ -85,7 +81,7 @@ func BenchmarkEntrypointReal(b *testing.B) {
 		Alias:       "test",
 		Scheme:      routeTypes.SchemeHTTP,
 		Host:        host,
-		Port:        route.Port{Proxy: portInt},
+		Port:        route.Port{Listening: 1000, Proxy: portInt},
 		HealthCheck: types.HealthCheckConfig{Disable: true},
 	})
 
@@ -94,7 +90,7 @@ func BenchmarkEntrypointReal(b *testing.B) {
 
 	var w noopResponseWriter
 
-	server, ok := ep.GetServer(common.ProxyHTTPAddr)
+	server, ok := ep.GetServer(":1000")
 	if !ok {
 		b.Fatal("server not found")
 	}
@@ -112,15 +108,13 @@ func BenchmarkEntrypointReal(b *testing.B) {
 }
 
 func BenchmarkEntrypoint(b *testing.B) {
-	task := task.GetTestTask(b)
-	ep := NewEntrypoint(task, nil)
+	ep := NewTestEntrypoint(b, nil)
 	req := http.Request{
-		Method: "GET",
+		Method: http.MethodGet,
 		URL:    &url.URL{Path: "/", RawPath: "/"},
 		Host:   "test.domain.tld",
 	}
 	ep.SetFindRouteDomains([]string{})
-	entrypoint.SetCtx(task, ep)
 
 	r, err := route.NewStartedTestRoute(b, &route.Route{
 		Alias:  "test",

@@ -1,20 +1,19 @@
 package serialization
 
 import (
+	"errors"
 	"reflect"
 	"testing"
-
-	gperr "github.com/yusing/goutils/errs"
 )
 
 type CustomValidatingString string
 
-func (c CustomValidatingString) Validate() gperr.Error {
+func (c CustomValidatingString) Validate() error {
 	if c == "" {
-		return gperr.New("string cannot be empty")
+		return errors.New("string cannot be empty")
 	}
 	if len(c) < 2 {
-		return gperr.New("string must be at least 2 characters")
+		return errors.New("string must be at least 2 characters")
 	}
 	return nil
 }

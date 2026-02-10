@@ -2,11 +2,12 @@ package serialization_test
 
 import (
 	"bytes"
+	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/yusing/godoxy/internal/serialization"
-	gperr "github.com/yusing/goutils/errs"
 )
 
 type TestStruct struct {
@@ -14,18 +15,17 @@ type TestStruct struct {
 	Value2 int    `json:"value2"`
 }
 
-func (t *TestStruct) Validate() gperr.Error {
+func (t *TestStruct) Validate() error {
 	if t.Value == "" {
-		return gperr.New("value is required")
+		return errors.New("value is required")
 	}
 	if t.Value2 != 0 && (t.Value2 < 5 || t.Value2 > 10) {
-		return gperr.New("value2 must be between 5 and 10")
+		return errors.New("value2 must be between 5 and 10")
 	}
 	return nil
 }
 
 func TestGinBinding(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		input   string
@@ -40,7 +40,7 @@ func TestGinBinding(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var dst TestStruct
 			body := bytes.NewBufferString(tt.input)
-			req := httptest.NewRequest("POST", "/", body)
+			req := httptest.NewRequest(http.MethodPost, "/", body)
 			err := serialization.GinJSONBinding{}.Bind(req, &dst)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%s: Bind() error = %v, wantErr %v", tt.name, err, tt.wantErr)

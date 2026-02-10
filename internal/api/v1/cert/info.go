@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yusing/godoxy/internal/autocert"
+	autocertctx "github.com/yusing/godoxy/internal/autocert/types"
 	apitypes "github.com/yusing/goutils/apitypes"
 )
 
@@ -21,7 +22,7 @@ import (
 // @Failure		500	{object}	apitypes.ErrorResponse "Internal server error"
 // @Router		/cert/info [get]
 func Info(c *gin.Context) {
-	provider := autocert.ActiveProvider.Load()
+	provider := autocertctx.FromCtx(c.Request.Context())
 	if provider == nil {
 		c.JSON(http.StatusNotFound, apitypes.Error("autocert is not enabled"))
 		return

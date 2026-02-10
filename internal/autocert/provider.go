@@ -22,6 +22,7 @@ import (
 	"github.com/go-acme/lego/v4/registration"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	autocert "github.com/yusing/godoxy/internal/autocert/types"
 	"github.com/yusing/godoxy/internal/common"
 	"github.com/yusing/godoxy/internal/notif"
 	gperr "github.com/yusing/goutils/errs"
@@ -56,15 +57,6 @@ type (
 
 	CertExpiries map[string]time.Time
 
-	CertInfo struct {
-		Subject        string   `json:"subject"`
-		Issuer         string   `json:"issuer"`
-		NotBefore      int64    `json:"not_before"`
-		NotAfter       int64    `json:"not_after"`
-		DNSNames       []string `json:"dns_names"`
-		EmailAddresses []string `json:"email_addresses"`
-	} // @name CertInfo
-
 	RenewMode uint8
 )
 
@@ -81,9 +73,6 @@ const (
 	renewModeForce = iota
 	renewModeIfNeeded
 )
-
-// could be nil
-var ActiveProvider atomic.Pointer[Provider]
 
 func NewProvider(cfg *Config, user *User, legoCfg *lego.Config) (*Provider, error) {
 	p := &Provider{
@@ -119,14 +108,14 @@ func (p *Provider) GetCert(hello *tls.ClientHelloInfo) (*tls.Certificate, error)
 	return p.tlsCert, nil
 }
 
-func (p *Provider) GetCertInfos() ([]CertInfo, error) {
+func (p *Provider) GetCertInfos() ([]autocert.CertInfo, error) {
 	allProviders := p.allProviders()
-	certInfos := make([]CertInfo, 0, len(allProviders))
+	certInfos := make([]autocert.CertInfo, 0, len(allProviders))
 	for _, provider := range allProviders {
 		if provider.tlsCert == nil {
 			continue
 		}
-		certInfos = append(certInfos, CertInfo{
+		certInfos = append(certInfos, autocert.CertInfo{
 			Subject:        provider.tlsCert.Leaf.Subject.CommonName,
 			Issuer:         provider.tlsCert.Leaf.Issuer.CommonName,
 			NotBefore:      provider.tlsCert.Leaf.NotBefore.Unix(),

@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/yusing/godoxy/internal/autocert"
+	autocertctx "github.com/yusing/godoxy/internal/autocert/types"
 	"github.com/yusing/godoxy/internal/logging/memlogger"
 	apitypes "github.com/yusing/goutils/apitypes"
 	"github.com/yusing/goutils/http/websocket"
@@ -23,8 +23,8 @@ import (
 // @Failure		500	{object}	apitypes.ErrorResponse
 // @Router			/cert/renew [get]
 func Renew(c *gin.Context) {
-	autocert := autocert.ActiveProvider.Load()
-	if autocert == nil {
+	provider := autocertctx.FromCtx(c.Request.Context())
+	if provider == nil {
 		c.JSON(http.StatusNotFound, apitypes.Error("autocert is not enabled"))
 		return
 	}
@@ -59,7 +59,7 @@ func Renew(c *gin.Context) {
 	}()
 
 	// renewal happens in background
-	ok := autocert.ForceExpiryAll()
+	ok := provider.ForceExpiryAll()
 	if !ok {
 		log.Error().Msg("cert renewal already in progress")
 		time.Sleep(1 * time.Second) // wait for the log above to be sent
@@ -67,5 +67,5 @@ func Renew(c *gin.Context) {
 	}
 	log.Info().Msg("cert force renewal requested")
 
-	autocert.WaitRenewalDone(manager.Context())
+	provider.WaitRenewalDone(manager.Context())
 }

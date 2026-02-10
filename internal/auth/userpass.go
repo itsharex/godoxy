@@ -24,8 +24,9 @@ type (
 		tokenTTL time.Duration
 	}
 	UserPassClaims struct {
-		Username string `json:"username"`
 		jwt.RegisteredClaims
+
+		Username string `json:"username"`
 	}
 )
 
@@ -78,7 +79,7 @@ func (auth *UserPassAuth) CheckToken(r *http.Request) error {
 		return ErrMissingSessionToken
 	}
 	var claims UserPassClaims
-	token, err := jwt.ParseWithClaims(jwtCookie.Value, &claims, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtCookie.Value, &claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}

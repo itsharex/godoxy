@@ -17,6 +17,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	acl "github.com/yusing/godoxy/internal/acl/types"
 	"github.com/yusing/godoxy/internal/agentpool"
 	"github.com/yusing/godoxy/internal/api"
@@ -90,11 +91,6 @@ func SetState(state config.State) {
 	cfg := state.Value()
 	config.ActiveState.Store(state)
 	homepage.ActiveConfig.Store(&cfg.Homepage)
-	if autocertProvider := state.AutoCertProvider(); autocertProvider != nil {
-		autocert.ActiveProvider.Store(autocertProvider.(*autocert.Provider))
-	} else {
-		autocert.ActiveProvider.Store(nil)
-	}
 }
 
 func HasState() bool {
@@ -203,25 +199,31 @@ func (state *state) NumProviders() int {
 }
 
 func (state *state) FlushTmpLog() {
-	state.tmpLogBuf.WriteTo(os.Stdout)
+	_, _ = state.tmpLogBuf.WriteTo(os.Stdout)
 	state.tmpLogBuf.Reset()
 }
 
 func (state *state) StartAPIServers() {
 	// API Handler needs to start after auth is initialized.
-	server.StartServer(state.task.Subtask("api_server", false), server.Options{
+	_, err := server.StartServer(state.task.Subtask("api_server", false), server.Options{
 		Name:     "api",
 		HTTPAddr: common.APIHTTPAddr,
 		Handler:  api.NewHandler(true),
 	})
+	if err != nil {
+		log.Err(err).Msg("failed to start API server")
+	}
 
 	// Local API Handler is used for unauthenticated access.
 	if common.LocalAPIHTTPAddr != "" {
-		server.StartServer(state.task.Subtask("local_api_server", false), server.Options{
+		_, err := server.StartServer(state.task.Subtask("local_api_server", false), server.Options{
 			Name:     "local_api",
 			HTTPAddr: common.LocalAPIHTTPAddr,
 			Handler:  api.NewHandler(false),
 		})
+		if err != nil {
+			log.Err(err).Msg("failed to start local API server")
+		}
 	}
 }
 

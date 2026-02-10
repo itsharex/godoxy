@@ -137,11 +137,11 @@ func fetchIcon(ctx context.Context, filename string) (Result, error) {
 	for _, fileType := range []string{"svg", "webp", "png"} {
 		result, err := fetchKnownIcon(ctx, icons.NewURL(icons.SourceSelfhSt, filename, fileType))
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		result, err = fetchKnownIcon(ctx, icons.NewURL(icons.SourceWalkXCode, filename, fileType))
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 	}
 	return FetchResultWithErrorf(http.StatusNotFound, "no icon found")
@@ -152,6 +152,8 @@ type contextValue struct {
 	uri string
 }
 
+type contextKey struct{}
+
 func FindIcon(ctx context.Context, r route, uri string, variant icons.Variant) (Result, error) {
 	for _, ref := range r.References() {
 		ref = sanitizeName(ref)
@@ -160,7 +162,7 @@ func FindIcon(ctx context.Context, r route, uri string, variant icons.Variant) (
 		}
 		result, err := fetchIcon(ctx, ref)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 	}
 	if r, ok := r.(httpRoute); ok {
@@ -168,13 +170,13 @@ func FindIcon(ctx context.Context, r route, uri string, variant icons.Variant) (
 			return FetchResultWithErrorf(http.StatusServiceUnavailable, "service unavailable")
 		}
 		// fallback to parse html
-		return findIconSlowCached(context.WithValue(ctx, "route", contextValue{r: r, uri: uri}), r.Key())
+		return findIconSlowCached(context.WithValue(ctx, contextKey{}, contextValue{r: r, uri: uri}), r.Key())
 	}
 	return FetchResultWithErrorf(http.StatusNotFound, "no icon found")
 }
 
 var findIconSlowCached = cache.NewKeyFunc(func(ctx context.Context, key string) (Result, error) {
-	v := ctx.Value("route").(contextValue)
+	v := ctx.Value(contextKey{}).(contextValue)
 	return findIconSlow(ctx, v.r, v.uri, nil)
 }).WithMaxEntries(200).WithRetriesConstantBackoff(math.MaxInt, 15*time.Second).Build() // infinite retries, 15 seconds interval
 

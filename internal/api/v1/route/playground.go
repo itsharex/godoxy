@@ -257,8 +257,8 @@ func handlerWithRecover(w http.ResponseWriter, r *http.Request, h http.HandlerFu
 }
 
 func parseRules(rawRules []RawRule) ([]ParsedRule, rules.Rules, error) {
-	var parsedRules []ParsedRule
-	var rulesList rules.Rules
+	parsedRules := make([]ParsedRule, 0, len(rawRules))
+	rulesList := make(rules.Rules, 0, len(rawRules))
 
 	var valErrs gperr.Builder
 

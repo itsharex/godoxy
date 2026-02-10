@@ -2,8 +2,8 @@ package serialization
 
 import (
 	"bytes"
+	"errors"
 	"io"
-	"os"
 	"strings"
 	"testing"
 )
@@ -11,17 +11,9 @@ import (
 // setupEnv sets up environment variables for benchmarks
 func setupEnv(b *testing.B) {
 	b.Helper()
-	os.Setenv("BENCH_VAR", "benchmark_value")
-	os.Setenv("BENCH_VAR_2", "second_value")
-	os.Setenv("BENCH_VAR_3", "third_value")
-}
-
-// cleanupEnv cleans up environment variables after benchmarks
-func cleanupEnv(b *testing.B) {
-	b.Helper()
-	os.Unsetenv("BENCH_VAR")
-	os.Unsetenv("BENCH_VAR_2")
-	os.Unsetenv("BENCH_VAR_3")
+	b.Setenv("BENCH_VAR", "benchmark_value")
+	b.Setenv("BENCH_VAR_2", "second_value")
+	b.Setenv("BENCH_VAR_3", "third_value")
 }
 
 // BenchmarkSubstituteEnvReader_NoSubstitution benchmarks reading without any env substitutions
@@ -44,7 +36,6 @@ data: some content here
 // BenchmarkSubstituteEnvReader_SingleSubstitution benchmarks reading with a single env substitution
 func BenchmarkSubstituteEnvReader_SingleSubstitution(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	r := strings.NewReader(`key: ${BENCH_VAR}
 `)
@@ -62,7 +53,6 @@ func BenchmarkSubstituteEnvReader_SingleSubstitution(b *testing.B) {
 // BenchmarkSubstituteEnvReader_MultipleSubstitutions benchmarks reading with multiple env substitutions
 func BenchmarkSubstituteEnvReader_MultipleSubstitutions(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	r := strings.NewReader(`key1: ${BENCH_VAR}
 key2: ${BENCH_VAR_2}
@@ -96,7 +86,6 @@ func BenchmarkSubstituteEnvReader_LargeInput_NoSubstitution(b *testing.B) {
 // BenchmarkSubstituteEnvReader_LargeInput_WithSubstitutions benchmarks large input with scattered substitutions
 func BenchmarkSubstituteEnvReader_LargeInput_WithSubstitutions(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	var builder bytes.Buffer
 	for range 100 {
@@ -118,7 +107,6 @@ func BenchmarkSubstituteEnvReader_LargeInput_WithSubstitutions(b *testing.B) {
 // BenchmarkSubstituteEnvReader_SmallBuffer benchmarks reading with a small buffer size
 func BenchmarkSubstituteEnvReader_SmallBuffer(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	r := strings.NewReader(`key: ${BENCH_VAR} and some more content here`)
 	buf := make([]byte, 16)
@@ -127,7 +115,7 @@ func BenchmarkSubstituteEnvReader_SmallBuffer(b *testing.B) {
 		reader := NewSubstituteEnvReader(r)
 		for {
 			_, err := reader.Read(buf)
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			if err != nil {
@@ -141,7 +129,6 @@ func BenchmarkSubstituteEnvReader_SmallBuffer(b *testing.B) {
 // BenchmarkSubstituteEnvReader_YAMLConfig benchmarks a realistic YAML config scenario
 func BenchmarkSubstituteEnvReader_YAMLConfig(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	r := strings.NewReader(`database:
   host: ${BENCH_VAR}
@@ -170,7 +157,6 @@ server:
 // BenchmarkSubstituteEnvReader_BoundaryPattern benchmarks patterns at buffer boundaries (4096 bytes)
 func BenchmarkSubstituteEnvReader_BoundaryPattern(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	// Pattern exactly at 4090 bytes, with ${VAR} crossing the 4096 boundary
 	prefix := strings.Repeat("x", 4090)
@@ -189,7 +175,6 @@ func BenchmarkSubstituteEnvReader_BoundaryPattern(b *testing.B) {
 // BenchmarkSubstituteEnvReader_MultipleBoundaries benchmarks multiple patterns crossing boundaries
 func BenchmarkSubstituteEnvReader_MultipleBoundaries(b *testing.B) {
 	setupEnv(b)
-	defer cleanupEnv(b)
 
 	var builder bytes.Buffer
 	for range 10 {
@@ -210,8 +195,7 @@ func BenchmarkSubstituteEnvReader_MultipleBoundaries(b *testing.B) {
 
 // BenchmarkSubstituteEnvReader_SpecialChars benchmarks substitution with special characters
 func BenchmarkSubstituteEnvReader_SpecialChars(b *testing.B) {
-	os.Setenv("SPECIAL_BENCH_VAR", `value with "quotes" and \backslash\`)
-	defer os.Unsetenv("SPECIAL_BENCH_VAR")
+	b.Setenv("SPECIAL_BENCH_VAR", `value with "quotes" and \backslash\`)
 
 	r := strings.NewReader(`key: ${SPECIAL_BENCH_VAR}
 `)
@@ -228,8 +212,7 @@ func BenchmarkSubstituteEnvReader_SpecialChars(b *testing.B) {
 
 // BenchmarkSubstituteEnvReader_EmptyValue benchmarks substitution with empty value
 func BenchmarkSubstituteEnvReader_EmptyValue(b *testing.B) {
-	os.Setenv("EMPTY_BENCH_VAR", "")
-	defer os.Unsetenv("EMPTY_BENCH_VAR")
+	b.Setenv("EMPTY_BENCH_VAR", "")
 
 	r := strings.NewReader(`key: ${EMPTY_BENCH_VAR}
 `)
@@ -246,8 +229,7 @@ func BenchmarkSubstituteEnvReader_EmptyValue(b *testing.B) {
 
 // BenchmarkSubstituteEnvReader_DollarWithoutBrace benchmarks $ without following {
 func BenchmarkSubstituteEnvReader_DollarWithoutBrace(b *testing.B) {
-	os.Setenv("BENCH_VAR", "benchmark_value")
-	defer os.Unsetenv("BENCH_VAR")
+	b.Setenv("BENCH_VAR", "benchmark_value")
 
 	r := strings.NewReader(`price: $100 and $200 for ${BENCH_VAR}`)
 

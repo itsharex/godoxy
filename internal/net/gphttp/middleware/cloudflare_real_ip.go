@@ -105,7 +105,7 @@ func fetchUpdateCFIPRange(endpoint string, cfCIDRs *[]*nettypes.CIDR) error {
 		return err
 	}
 
-	resp, err := http.DefaultClient.Do(req) //nolint:gosec
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

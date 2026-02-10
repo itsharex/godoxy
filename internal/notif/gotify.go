@@ -59,7 +59,7 @@ func (client *GotifyClient) MarshalMessage(logMsg *LogMessage) ([]byte, error) {
 	}
 
 	if client.Format == LogFormatMarkdown {
-		msg.Extras = map[string]interface{}{
+		msg.Extras = map[string]any{
 			"client::display": map[string]string{
 				"contentType": "text/markdown",
 			},

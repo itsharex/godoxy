@@ -23,9 +23,8 @@ import (
 )
 
 // mockUpstream creates a simple upstream handler for testing
-func mockUpstream(status int, body string) http.HandlerFunc {
+func mockUpstream(body string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(status)
 		w.Write([]byte(body))
 	}
 }
@@ -51,7 +50,7 @@ func parseRules(data string, target *Rules) error {
 func TestHTTPFlow_BasicPreRules(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Custom-Header", r.Header.Get("X-Custom-Header"))
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("upstream response"))
 	})
 
@@ -65,18 +64,18 @@ func TestHTTPFlow_BasicPreRules(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "upstream response", w.Body.String())
 	assert.Equal(t, "test-value", w.Header().Get("X-Custom-Header"))
 }
 
 func TestHTTPFlow_BypassRule(t *testing.T) {
-	upstream := mockUpstream(200, "upstream response")
+	upstream := mockUpstream("upstream response")
 
 	var rules Rules
 	err := parseRules(`
@@ -91,17 +90,17 @@ func TestHTTPFlow_BypassRule(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/bypass", nil)
+	req := httptest.NewRequest(http.MethodGet, "/bypass", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "upstream response", w.Body.String())
 }
 
 func TestHTTPFlow_TerminatingCommand(t *testing.T) {
-	upstream := mockUpstream(200, "should not be called")
+	upstream := mockUpstream("should not be called")
 
 	var rules Rules
 	err := parseRules(`
@@ -116,18 +115,18 @@ func TestHTTPFlow_TerminatingCommand(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/error", nil)
+	req := httptest.NewRequest(http.MethodGet, "/error", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 403, w.Code)
+	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Equal(t, "Forbidden\n", w.Body.String())
 	assert.Empty(t, w.Header().Get("X-Header"))
 }
 
 func TestHTTPFlow_RedirectFlow(t *testing.T) {
-	upstream := mockUpstream(200, "should not be called")
+	upstream := mockUpstream("should not be called")
 
 	var rules Rules
 	err := parseRules(`
@@ -139,18 +138,18 @@ func TestHTTPFlow_RedirectFlow(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/old-path", nil)
+	req := httptest.NewRequest(http.MethodGet, "/old-path", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 307, w.Code) // TemporaryRedirect
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code) // TemporaryRedirect
 	assert.Equal(t, "/new-path", w.Header().Get("Location"))
 }
 
 func TestHTTPFlow_RewriteFlow(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("path: " + r.URL.Path))
 	})
 
@@ -164,18 +163,18 @@ func TestHTTPFlow_RewriteFlow(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/api/users", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/users", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "path: /v1/users", w.Body.String())
 }
 
 func TestHTTPFlow_MultiplePreRules(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("upstream: " + r.Header.Get("X-Request-Id")))
 	})
 
@@ -192,18 +191,18 @@ func TestHTTPFlow_MultiplePreRules(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "upstream: req-123", w.Body.String())
 	assert.Equal(t, "token-456", req.Header.Get("X-Auth-Token"))
 }
 
 func TestHTTPFlow_PostResponseRule(t *testing.T) {
-	upstream := mockUpstreamWithHeaders(200, "success", http.Header{
+	upstream := mockUpstreamWithHeaders(http.StatusOK, "success", http.Header{
 		"X-Upstream": []string{"upstream-value"},
 	})
 
@@ -219,12 +218,12 @@ func TestHTTPFlow_PostResponseRule(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "success", w.Body.String())
 	assert.Equal(t, "upstream-value", w.Header().Get("X-Upstream"))
 
@@ -237,10 +236,10 @@ func TestHTTPFlow_PostResponseRule(t *testing.T) {
 func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/success" {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("success"))
 		} else {
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("not found"))
 		}
 	})
@@ -260,18 +259,18 @@ func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test successful request (should not log)
-	req1 := httptest.NewRequest("GET", "/success", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/success", nil)
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 
 	// Test error request (should log)
-	req2 := httptest.NewRequest("GET", "/notfound", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/notfound", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 404, w2.Code)
+	assert.Equal(t, http.StatusNotFound, w2.Code)
 
 	// Check log file
 	content := TestFileContent(tempFile)
@@ -283,7 +282,7 @@ func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
 
 func TestHTTPFlow_ConditionalRules(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("hello " + r.Header.Get("X-Username")))
 	})
 
@@ -304,19 +303,19 @@ func TestHTTPFlow_ConditionalRules(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test with Authorization header
-	req1 := httptest.NewRequest("GET", "/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.Header.Set("Authorization", "Bearer token")
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "hello authenticated-user", w1.Body.String())
 	assert.Equal(t, "authenticated-user", w1.Header().Get("X-Username"))
 
 	// Test without Authorization header
-	req2 := httptest.NewRequest("GET", "/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "hello anonymous", w2.Body.String())
 	assert.Equal(t, "anonymous", w2.Header().Get("X-Username"))
 }
@@ -326,13 +325,13 @@ func TestHTTPFlow_ComplexFlowWithPreAndPostRules(t *testing.T) {
 		// Simulate different responses based on path
 		if r.URL.Path == "/protected" {
 			if r.Header.Get("X-Auth") != "valid" {
-				w.WriteHeader(401)
+				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("unauthorized"))
 				return
 			}
 		}
 		w.Header().Set("X-Response-Time", "100ms")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("success"))
 	})
 
@@ -360,32 +359,32 @@ func TestHTTPFlow_ComplexFlowWithPreAndPostRules(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test successful request
-	req1 := httptest.NewRequest("GET", "/public", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/public", nil)
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "success", w1.Body.String())
 	assert.Equal(t, "random_uuid", w1.Header().Get("X-Correlation-Id"))
 	assert.Equal(t, "100ms", w1.Header().Get("X-Response-Time"))
 
 	// Test unauthorized protected request
-	req2 := httptest.NewRequest("GET", "/protected", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 401, w2.Code)
-	assert.Equal(t, w2.Body.String(), "Unauthorized\n")
+	assert.Equal(t, http.StatusUnauthorized, w2.Code)
+	assert.Equal(t, "Unauthorized\n", w2.Body.String())
 
 	// Test authorized protected request
-	req3 := httptest.NewRequest("GET", "/protected", nil)
+	req3 := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	req3.SetBasicAuth("user", "pass")
 	w3 := httptest.NewRecorder()
 	handler.ServeHTTP(w3, req3)
 
 	// This should fail because our simple upstream expects X-Auth: valid header
 	// but the basic auth requirement should add the appropriate header
-	assert.Equal(t, 401, w3.Code)
+	assert.Equal(t, http.StatusUnauthorized, w3.Code)
 
 	// Check log files
 	logContent := TestFileContent(logFile)
@@ -404,7 +403,7 @@ func TestHTTPFlow_ComplexFlowWithPreAndPostRules(t *testing.T) {
 }
 
 func TestHTTPFlow_DefaultRule(t *testing.T) {
-	upstream := mockUpstream(200, "upstream response")
+	upstream := mockUpstream("upstream response")
 
 	var rules Rules
 	err := parseRules(`
@@ -419,20 +418,20 @@ func TestHTTPFlow_DefaultRule(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test default rule
-	req1 := httptest.NewRequest("GET", "/regular", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/regular", nil)
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "true", w1.Header().Get("X-Default-Applied"))
 	assert.Empty(t, w1.Header().Get("X-Special-Handled"))
 
 	// Test special rule + default rule
-	req2 := httptest.NewRequest("GET", "/special", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/special", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "true", w2.Header().Get("X-Default-Applied"))
 	assert.Equal(t, "true", w2.Header().Get("X-Special-Handled"))
 }
@@ -442,7 +441,7 @@ func TestHTTPFlow_HeaderManipulation(t *testing.T) {
 		// Echo back a header
 		headerValue := r.Header.Get("X-Test-Header")
 		w.Header().Set("X-Echoed-Header", headerValue)
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("header echoed"))
 	})
 
@@ -460,14 +459,14 @@ func TestHTTPFlow_HeaderManipulation(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("X-Secret", "secret-value")
 	req.Header.Set("X-Test-Header", "original-value")
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "modified-value", w.Header().Get("X-Echoed-Header"))
 	assert.Equal(t, "custom-value", w.Header().Get("X-Custom-Header"))
 	// Ensure the secret header was removed and not passed to upstream
@@ -477,7 +476,7 @@ func TestHTTPFlow_HeaderManipulation(t *testing.T) {
 func TestHTTPFlow_QueryParameterHandling(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("query: " + query.Get("param")))
 	})
 
@@ -491,25 +490,23 @@ func TestHTTPFlow_QueryParameterHandling(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/path?param=original", nil)
+	req := httptest.NewRequest(http.MethodGet, "/path?param=original", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	// The set command should have modified the query parameter
 	assert.Equal(t, "query: added-value", w.Body.String())
 }
 
 func TestHTTPFlow_ServeCommand(t *testing.T) {
 	// Create a temporary directory with test files
-	tempDir, err := os.MkdirTemp("", "test-serve-*")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Create test files directly in the temp directory
 	testFile := filepath.Join(tempDir, "index.html")
-	err = os.WriteFile(testFile, []byte("<h1>Test Page</h1>"), 0644)
+	err := os.WriteFile(testFile, []byte("<h1>Test Page</h1>"), 0o644)
 	require.NoError(t, err)
 
 	var rules Rules
@@ -520,7 +517,7 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 `, tempDir), &rules)
 	require.NoError(t, err)
 
-	handler := rules.BuildHandler(mockUpstream(200, "should not be called"))
+	handler := rules.BuildHandler(mockUpstream("should not be called"))
 
 	// Test serving a file - serve command serves files relative to the root directory
 	// The path /files/index.html gets mapped to tempDir + "/files/index.html"
@@ -533,7 +530,7 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 	err = os.WriteFile(filesIndexFile, []byte("<h1>Test Page</h1>"), 0644)
 	require.NoError(t, err)
 
-	req1 := httptest.NewRequest("GET", "/files/index.html", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/files/index.html", nil)
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
@@ -542,18 +539,18 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 	assert.NotEqual(t, "should not be called", w1.Body.String())
 
 	// Test file not found
-	req2 := httptest.NewRequest("GET", "/files/nonexistent.html", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/files/nonexistent.html", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 404, w2.Code)
+	assert.Equal(t, http.StatusNotFound, w2.Code)
 }
 
 func TestHTTPFlow_ProxyCommand(t *testing.T) {
 	// Create a mock upstream server
 	upstreamServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Upstream-Header", "upstream-value")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("upstream response"))
 	}))
 	defer upstreamServer.Close()
@@ -566,15 +563,15 @@ func TestHTTPFlow_ProxyCommand(t *testing.T) {
 `, upstreamServer.URL), &rules)
 	require.NoError(t, err)
 
-	handler := rules.BuildHandler(mockUpstream(200, "should not be called"))
+	handler := rules.BuildHandler(mockUpstream("should not be called"))
 
-	req := httptest.NewRequest("GET", "/api/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
 	// The proxy command should forward the request to the upstream server
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "upstream response", w.Body.String())
 	assert.Equal(t, "upstream-value", w.Header().Get("X-Upstream-Header"))
 }
@@ -585,7 +582,7 @@ func TestHTTPFlow_NotifyCommand(t *testing.T) {
 
 func TestHTTPFlow_FormConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("form processed"))
 	})
 
@@ -604,28 +601,28 @@ func TestHTTPFlow_FormConditions(t *testing.T) {
 
 	// Test form condition
 	formData := url.Values{"username": {"john_doe"}}
-	req1 := httptest.NewRequest("POST", "/", strings.NewReader(formData.Encode()))
+	req1 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(formData.Encode()))
 	req1.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "john_doe", w1.Header().Get("X-Username"))
 
 	// Test postform condition
 	postFormData := url.Values{"email": {"john@example.com"}}
-	req2 := httptest.NewRequest("POST", "/", strings.NewReader(postFormData.Encode()))
+	req2 := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(postFormData.Encode()))
 	req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "john@example.com", w2.Header().Get("X-Email"))
 }
 
 func TestHTTPFlow_RemoteConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("remote processed"))
 	})
 
@@ -643,27 +640,27 @@ func TestHTTPFlow_RemoteConditions(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test localhost condition
-	req1 := httptest.NewRequest("GET", "/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.RemoteAddr = "127.0.0.1:12345"
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "local", w1.Header().Get("X-Access"))
 
 	// Test private network block
-	req2 := httptest.NewRequest("GET", "/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req2.RemoteAddr = "192.168.1.100:12345"
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 403, w2.Code)
+	assert.Equal(t, http.StatusForbidden, w2.Code)
 	assert.Equal(t, "Private network blocked\n", w2.Body.String())
 }
 
 func TestHTTPFlow_BasicAuthConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("auth processed"))
 	})
 
@@ -687,27 +684,27 @@ func TestHTTPFlow_BasicAuthConditions(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test admin user
-	req1 := httptest.NewRequest("GET", "/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.SetBasicAuth("admin", "adminpass")
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "admin", w1.Header().Get("X-Auth-Status"))
 
 	// Test guest user
-	req2 := httptest.NewRequest("GET", "/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req2.SetBasicAuth("guest", "guestpass")
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "guest", w2.Header().Get("X-Auth-Status"))
 }
 
 func TestHTTPFlow_RouteConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("route processed"))
 	})
 
@@ -725,29 +722,29 @@ func TestHTTPFlow_RouteConditions(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test API route
-	req1 := httptest.NewRequest("GET", "/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1 = routes.WithRouteContext(req1, mockRoute("backend"))
 
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "backend", w1.Header().Get("X-Route"))
 
 	// Test admin route
-	req2 := httptest.NewRequest("GET", "/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req2 = routes.WithRouteContext(req2, mockRoute("frontend"))
 
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "frontend", w2.Header().Get("X-Route"))
 }
 
 func TestHTTPFlow_ResponseStatusConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(405)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("method not allowed"))
 	})
 
@@ -762,18 +759,18 @@ func TestHTTPFlow_ResponseStatusConditions(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 405, w.Code)
+	assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
 	assert.Equal(t, "error\n", w.Body.String())
 }
 
 func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Response-Header", "response header")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("processed"))
 	})
 
@@ -788,11 +785,11 @@ func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
 
 		handler := rules.BuildHandler(upstream)
 
-		req := httptest.NewRequest("GET", "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		assert.Equal(t, 405, w.Code)
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
 		assert.Equal(t, "error\n", w.Body.String())
 	})
 	t.Run("with_value", func(t *testing.T) {
@@ -806,11 +803,11 @@ func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
 
 		handler := rules.BuildHandler(upstream)
 
-		req := httptest.NewRequest("GET", "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		assert.Equal(t, 405, w.Code)
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
 		assert.Equal(t, "error\n", w.Body.String())
 	})
 
@@ -825,18 +822,18 @@ func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
 
 		handler := rules.BuildHandler(upstream)
 
-		req := httptest.NewRequest("GET", "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
 
-		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, "processed", w.Body.String())
 	})
 }
 
 func TestHTTPFlow_ComplexRuleCombinations(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("complex processed"))
 	})
 
@@ -867,26 +864,26 @@ func TestHTTPFlow_ComplexRuleCombinations(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test admin API (should match first rule)
-	req1 := httptest.NewRequest("POST", "/api/admin/users", nil)
+	req1 := httptest.NewRequest(http.MethodPost, "/api/admin/users", nil)
 	req1.Header.Set("Authorization", "Bearer token")
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 	assert.Equal(t, "admin", w1.Header().Get("X-Access-Level"))
 	assert.Equal(t, "v1", w1.Header()["X-API-Version"][0])
 
 	// Test user API (should match second rule)
-	req2 := httptest.NewRequest("GET", "/api/users/profile", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/api/users/profile", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, 200, w2.Code)
+	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Equal(t, "user", w2.Header().Get("X-Access-Level"))
 	assert.Equal(t, "v1", w2.Header()["X-API-Version"][0])
 
 	// Test public API (should match third rule)
-	req3 := httptest.NewRequest("GET", "/api/public/info", nil)
+	req3 := httptest.NewRequest(http.MethodGet, "/api/public/info", nil)
 	w3 := httptest.NewRecorder()
 	handler.ServeHTTP(w3, req3)
 
@@ -897,7 +894,7 @@ func TestHTTPFlow_ComplexRuleCombinations(t *testing.T) {
 
 func TestHTTPFlow_ResponseModifier(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("original response"))
 	})
 
@@ -912,12 +909,12 @@ func TestHTTPFlow_ResponseModifier(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "true", w.Header().Get("X-Modified"))
 	assert.Equal(t, "Modified: GET /test\n", w.Body.String())
 }

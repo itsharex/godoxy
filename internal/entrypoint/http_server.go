@@ -19,7 +19,7 @@ import (
 	"github.com/yusing/goutils/server"
 )
 
-// httpServer is a server that listens on a given address and serves HTTP routes.
+// HTTPServer is a server that listens on a given address and serves HTTP routes.
 type HTTPServer interface {
 	Listen(addr string, proto HTTPProto) error
 	AddRoute(route types.HTTPRoute)
@@ -109,6 +109,8 @@ func (srv *httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		rec := accesslog.GetResponseRecorder(w)
 		w = rec
 		defer func() {
+			// there is no body to close
+			//nolint:bodyclose
 			srv.ep.accessLogger.LogRequest(r, rec.Response())
 			accesslog.PutResponseRecorder(rec)
 		}()

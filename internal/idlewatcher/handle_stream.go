@@ -11,7 +11,7 @@ var _ nettypes.Stream = (*Watcher)(nil)
 
 // ListenAndServe implements nettypes.Stream.
 func (w *Watcher) ListenAndServe(ctx context.Context, predial, onRead nettypes.HookFunc) error {
-	return w.stream.ListenAndServe(ctx, func(ctx context.Context) error { //nolint:contextcheck
+	return w.stream.ListenAndServe(ctx, func(ctx context.Context) error {
 		return w.preDial(ctx, predial)
 	}, func(ctx context.Context) error {
 		return w.onRead(ctx, onRead)

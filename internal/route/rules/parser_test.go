@@ -1,11 +1,9 @@
 package rules
 
 import (
-	"os"
 	"strconv"
 	"testing"
 
-	gperr "github.com/yusing/goutils/errs"
 	expect "github.com/yusing/goutils/testing"
 )
 
@@ -15,7 +13,6 @@ func TestParser(t *testing.T) {
 		input   string
 		subject string
 		args    []string
-		wantErr gperr.Error
 	}{
 		{
 			name:    "basic",
@@ -93,10 +90,6 @@ func TestParser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			subject, args, err := parse(tt.input)
-			if tt.wantErr != nil {
-				expect.ErrorIs(t, tt.wantErr, err)
-				return
-			}
 			// t.Log(subject, args, err)
 			expect.NoError(t, err)
 			expect.Equal(t, subject, tt.subject)
@@ -105,12 +98,8 @@ func TestParser(t *testing.T) {
 	}
 	t.Run("env substitution", func(t *testing.T) {
 		// Set up test environment variables
-		os.Setenv("CLOUDFLARE_API_KEY", "test-api-key-123")
-		os.Setenv("DOMAIN", "example.com")
-		defer func() {
-			os.Unsetenv("CLOUDFLARE_API_KEY")
-			os.Unsetenv("DOMAIN")
-		}()
+		t.Setenv("CLOUDFLARE_API_KEY", "test-api-key-123")
+		t.Setenv("DOMAIN", "example.com")
 
 		tests := []struct {
 			name    string

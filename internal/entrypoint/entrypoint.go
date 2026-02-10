@@ -47,10 +47,10 @@ var _ entrypoint.Entrypoint = &Entrypoint{}
 
 var emptyCfg Config
 
-func NewTestEntrypoint(t testing.TB, cfg *Config) *Entrypoint {
-	t.Helper()
+func NewTestEntrypoint(tb testing.TB, cfg *Config) *Entrypoint {
+	tb.Helper()
 
-	testTask := task.GetTestTask(t)
+	testTask := task.GetTestTask(tb)
 	ep := NewEntrypoint(testTask, cfg)
 	entrypoint.SetCtx(testTask, ep)
 	return ep
@@ -160,6 +160,7 @@ func (ep *Entrypoint) SetAccessLogger(parent task.Parent, cfg *accesslog.Request
 }
 
 func findRouteAnyDomain(routes HTTPRoutes, host string) types.HTTPRoute {
+	//nolint:modernize
 	idx := strings.IndexByte(host, '.')
 	if idx != -1 {
 		target := host[:idx]

@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+	"maps"
 
 	dockerEvents "github.com/moby/moby/api/types/events"
 )
@@ -69,9 +70,7 @@ var actionNameMap = func() (m map[Action]string) {
 	for k, v := range DockerEventMap {
 		m[v] = string(k)
 	}
-	for k, v := range fileActionNameMap {
-		m[k] = v
-	}
+	maps.Copy(m, fileActionNameMap)
 	return m
 }()
 

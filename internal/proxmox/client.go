@@ -20,6 +20,7 @@ import (
 type Client struct {
 	*proxmox.Client
 	*proxmox.Cluster
+
 	Version *proxmox.Version
 	BaseURL *url.URL
 	// id -> resource; id: lxc/<vmid> or qemu/<vmid>
@@ -29,6 +30,7 @@ type Client struct {
 
 type VMResource struct {
 	*proxmox.ClusterResource
+
 	IPs []net.IP
 }
 
@@ -37,9 +39,9 @@ var (
 	ErrNoResources      = errors.New("no resources")
 )
 
-func NewClient(baseUrl string, opts ...proxmox.Option) *Client {
+func NewClient(baseURL string, opts ...proxmox.Option) *Client {
 	return &Client{
-		Client:    proxmox.NewClient(baseUrl, opts...),
+		Client:    proxmox.NewClient(baseURL, opts...),
 		resources: make(map[string]*VMResource),
 	}
 }

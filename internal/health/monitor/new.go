@@ -2,9 +2,9 @@ package monitor
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -14,8 +14,10 @@ import (
 	"github.com/yusing/godoxy/internal/types"
 )
 
-type Result = types.HealthCheckResult
-type Monitor = types.HealthMonCheck
+type (
+	Result  = types.HealthCheckResult
+	Monitor = types.HealthMonCheck
+)
 
 // NewMonitor creates a health monitor based on the route type and configuration.
 //
@@ -78,22 +80,22 @@ func NewFileServerHealthMonitor(config types.HealthCheckConfig, path string) Mon
 	return &mon
 }
 
-func NewStreamHealthMonitor(config types.HealthCheckConfig, targetUrl *url.URL) Monitor {
+func NewStreamHealthMonitor(config types.HealthCheckConfig, targetURL *url.URL) Monitor {
 	var mon monitor
-	mon.init(targetUrl, config, func(u *url.URL) (result Result, err error) {
+	mon.init(targetURL, config, func(u *url.URL) (result Result, err error) {
 		return healthcheck.Stream(mon.Context(), u, config.Timeout)
 	})
 	return &mon
 }
 
-func NewDockerHealthMonitor(config types.HealthCheckConfig, client *docker.SharedClient, containerId string, fallback Monitor) Monitor {
-	state := healthcheck.NewDockerHealthcheckState(client, containerId)
+func NewDockerHealthMonitor(config types.HealthCheckConfig, client *docker.SharedClient, containerID string, fallback Monitor) Monitor {
+	state := healthcheck.NewDockerHealthcheckState(client, containerID)
 	displayURL := &url.URL{ // only for display purposes, no actual request is made
 		Scheme: "docker",
 		Host:   client.DaemonHost(),
-		Path:   "/containers/" + containerId + "/json",
+		Path:   "/containers/" + containerID + "/json",
 	}
-	logger := log.With().Str("host", client.DaemonHost()).Str("container_id", containerId).Logger()
+	logger := log.With().Str("host", client.DaemonHost()).Str("container_id", containerID).Logger()
 	isFirstFailure := true
 
 	var mon monitor
@@ -114,20 +116,20 @@ func NewDockerHealthMonitor(config types.HealthCheckConfig, client *docker.Share
 	return &mon
 }
 
-func NewAgentProxiedMonitor(config types.HealthCheckConfig, agent *agentpool.Agent, targetUrl *url.URL) Monitor {
+func NewAgentProxiedMonitor(config types.HealthCheckConfig, agent *agentpool.Agent, targetURL *url.URL) Monitor {
 	var mon monitor
-	mon.init(targetUrl, config, func(u *url.URL) (result Result, err error) {
+	mon.init(targetURL, config, func(u *url.URL) (result Result, err error) {
 		return CheckHealthAgentProxied(agent, config.Timeout, u)
 	})
 	return &mon
 }
 
-func CheckHealthAgentProxied(agent *agentpool.Agent, timeout time.Duration, targetUrl *url.URL) (Result, error) {
+func CheckHealthAgentProxied(agent *agentpool.Agent, timeout time.Duration, targetURL *url.URL) (Result, error) {
 	query := url.Values{
-		"scheme":  {targetUrl.Scheme},
-		"host":    {targetUrl.Host},
-		"path":    {targetUrl.Path},
-		"timeout": {fmt.Sprintf("%d", timeout.Milliseconds())},
+		"scheme":  {targetURL.Scheme},
+		"host":    {targetURL.Host},
+		"path":    {targetURL.Path},
+		"timeout": {strconv.FormatInt(timeout.Milliseconds(), 10)},
 	}
 	resp, err := agent.DoHealthCheck(timeout, query.Encode())
 	result := Result{

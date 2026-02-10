@@ -19,7 +19,7 @@ func TestShortLinkMatcher_FQDNAlias(t *testing.T) {
 	matcher.AddRoute("app.domain.com")
 
 	t.Run("exact path", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -28,7 +28,7 @@ func TestShortLinkMatcher_FQDNAlias(t *testing.T) {
 	})
 
 	t.Run("with path remainder", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app/foo/bar", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app/foo/bar", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -37,7 +37,7 @@ func TestShortLinkMatcher_FQDNAlias(t *testing.T) {
 	})
 
 	t.Run("with query", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app/foo?x=y&z=1", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app/foo?x=y&z=1", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -53,7 +53,7 @@ func TestShortLinkMatcher_SubdomainAlias(t *testing.T) {
 	matcher.AddRoute("app")
 
 	t.Run("exact path", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -62,7 +62,7 @@ func TestShortLinkMatcher_SubdomainAlias(t *testing.T) {
 	})
 
 	t.Run("with path remainder", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app/foo/bar", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app/foo/bar", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -78,7 +78,7 @@ func TestShortLinkMatcher_NotFound(t *testing.T) {
 	matcher.AddRoute("app")
 
 	t.Run("missing key", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -86,7 +86,7 @@ func TestShortLinkMatcher_NotFound(t *testing.T) {
 	})
 
 	t.Run("unknown key", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/unknown", nil)
+		req := httptest.NewRequest(http.MethodGet, "/unknown", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -103,13 +103,13 @@ func TestShortLinkMatcher_AddDelRoute(t *testing.T) {
 	matcher.AddRoute("app2.domain.com")
 
 	t.Run("both routes work", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app1", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app1", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 		assert.Equal(t, "https://app1.example.com/", w.Header().Get("Location"))
 
-		req = httptest.NewRequest("GET", "/app2.domain.com", nil)
+		req = httptest.NewRequest(http.MethodGet, "/app2.domain.com", nil)
 		w = httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
@@ -119,12 +119,12 @@ func TestShortLinkMatcher_AddDelRoute(t *testing.T) {
 	t.Run("delete route", func(t *testing.T) {
 		matcher.DelRoute("app1")
 
-		req := httptest.NewRequest("GET", "/app1", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app1", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
-		req = httptest.NewRequest("GET", "/app2.domain.com", nil)
+		req = httptest.NewRequest(http.MethodGet, "/app2.domain.com", nil)
 		w = httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
@@ -140,7 +140,7 @@ func TestShortLinkMatcher_NoDefaultDomainSuffix(t *testing.T) {
 	t.Run("subdomain alias ignored", func(t *testing.T) {
 		matcher.AddRoute("app")
 
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -150,7 +150,7 @@ func TestShortLinkMatcher_NoDefaultDomainSuffix(t *testing.T) {
 	t.Run("FQDN alias still works", func(t *testing.T) {
 		matcher.AddRoute("app.domain.com")
 
-		req := httptest.NewRequest("GET", "/app.domain.com", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app.domain.com", nil)
 		w := httptest.NewRecorder()
 		matcher.ServeHTTP(w, req)
 
@@ -169,7 +169,7 @@ func TestEntrypoint_ShortLinkDispatch(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("shortlink host", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		req.Host = common.ShortLinkPrefix
 		w := httptest.NewRecorder()
 		server.ServeHTTP(w, req)
@@ -179,7 +179,7 @@ func TestEntrypoint_ShortLinkDispatch(t *testing.T) {
 	})
 
 	t.Run("shortlink host with port", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		req.Host = common.ShortLinkPrefix + ":8080"
 		w := httptest.NewRecorder()
 		server.ServeHTTP(w, req)
@@ -189,7 +189,7 @@ func TestEntrypoint_ShortLinkDispatch(t *testing.T) {
 	})
 
 	t.Run("normal host", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/app", nil)
+		req := httptest.NewRequest(http.MethodGet, "/app", nil)
 		req.Host = "app.example.com"
 		w := httptest.NewRecorder()
 		server.ServeHTTP(w, req)

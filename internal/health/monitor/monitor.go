@@ -14,6 +14,7 @@ import (
 	config "github.com/yusing/godoxy/internal/config/types"
 	"github.com/yusing/godoxy/internal/notif"
 	"github.com/yusing/godoxy/internal/types"
+	"github.com/yusing/goutils/events"
 	strutils "github.com/yusing/goutils/strings"
 	"github.com/yusing/goutils/synk"
 	"github.com/yusing/goutils/task"
@@ -269,6 +270,7 @@ func (mon *monitor) notifyServiceUp(logger *zerolog.Logger, result *types.Health
 		Body:  extras,
 		Color: notif.ColorSuccess,
 	})
+	events.Global.Add(events.NewEvent(events.LevelInfo, "health", "service_up", mon))
 }
 
 func (mon *monitor) notifyServiceDown(logger *zerolog.Logger, result *types.HealthCheckResult) {
@@ -281,6 +283,7 @@ func (mon *monitor) notifyServiceDown(logger *zerolog.Logger, result *types.Heal
 		Body:  extras,
 		Color: notif.ColorError,
 	})
+	events.Global.Add(events.NewEvent(events.LevelWarn, "health", "service_down", mon))
 }
 
 func (mon *monitor) buildNotificationExtras(result *types.HealthCheckResult) notif.FieldsBody {

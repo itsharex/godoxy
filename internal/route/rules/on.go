@@ -41,6 +41,7 @@ const (
 	OnRoute     = "route"
 
 	// on response
+
 	OnResponseHeader = "resp_header"
 	OnStatus         = "status"
 )
@@ -63,6 +64,7 @@ var checkers = map[string]struct {
 			if len(args) != 0 {
 				return nil, ErrExpectNoArg
 			}
+			//nolint:nilnil
 			return nil, nil
 		},
 		builder: func(args any) CheckFunc { return func(w http.ResponseWriter, r *http.Request) bool { return false } }, // this should never be called

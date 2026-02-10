@@ -91,7 +91,7 @@ func (p *Provider) GetType() provider.Type {
 	return p.t
 }
 
-// to work with json marshaller.
+// MarshalText implements encoding.TextMarshaler.
 func (p *Provider) MarshalText() ([]byte, error) {
 	return []byte(p.String()), nil
 }

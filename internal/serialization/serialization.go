@@ -87,7 +87,7 @@ func initPtr(dst reflect.Value) {
 	}
 }
 
-// Validate performs struct validation using go-playground/validator tags.
+// ValidateWithFieldTags performs struct validation using go-playground/validator tags.
 //
 // It collects all validation errors and returns them as a single error.
 // Field names in errors are prefixed with their namespace (e.g., "User.Email").
@@ -521,7 +521,6 @@ func ConvertSlice(src reflect.Value, dst reflect.Value, checkValidateTag bool) e
 //   - Returns true if conversion was handled (even with error), false if
 //     conversion is unsupported.
 func ConvertString(src string, dst reflect.Value) (convertible bool, convErr error) {
-	convertible = true
 	dstT := dst.Type()
 	if dst.Kind() == reflect.Pointer {
 		if dst.IsNil() {

@@ -67,7 +67,7 @@ func TestFieldHandler_Header(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			tt.setup(req)
 			w := httptest.NewRecorder()
 
@@ -126,8 +126,8 @@ func TestFieldHandler_ResponseHeader(t *testing.T) {
 			verify: func(w *httptest.ResponseRecorder) {
 				values := w.Header()["X-Response-Test"]
 				require.Len(t, values, 2)
-				assert.Equal(t, values[0], "existing-value")
-				assert.Equal(t, values[1], "additional-value")
+				assert.Equal(t, "existing-value", values[0])
+				assert.Equal(t, "additional-value", values[1])
 			},
 		},
 		{
@@ -143,7 +143,7 @@ func TestFieldHandler_ResponseHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			if tt.setup != nil {
 				tt.setup(w)
@@ -232,7 +232,7 @@ func TestFieldHandler_Query(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			tt.setup(req)
 			w := httptest.NewRecorder()
 
@@ -330,7 +330,7 @@ func TestFieldHandler_Cookie(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			tt.setup(req)
 			w := httptest.NewRecorder()
 
@@ -396,7 +396,7 @@ func TestFieldHandler_Body(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			tt.setup(req)
 			w := httptest.NewRecorder()
 
@@ -440,7 +440,7 @@ func TestFieldHandler_ResponseBody(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			tt.setup(req)
 			w := httptest.NewRecorder()
 
@@ -494,7 +494,7 @@ func TestFieldHandler_StatusCode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			rm := httputils.NewResponseModifier(w)
 			var cmd Command

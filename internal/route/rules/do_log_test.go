@@ -53,7 +53,7 @@ func TestLogCommand_TemporaryFile(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("POST", "/api/users", nil)
+	req := httptest.NewRequest(http.MethodPost, "/api/users", nil)
 	req.Header.Set("User-Agent", "test-agent")
 	w := httptest.NewRecorder()
 
@@ -70,7 +70,7 @@ func TestLogCommand_TemporaryFile(t *testing.T) {
 }
 
 func TestLogCommand_StdoutAndStderr(t *testing.T) {
-	upstream := mockUpstream(200, "success")
+	upstream := mockUpstream(http.StatusOK, "success")
 
 	var rules Rules
 	err := parseRules(`
@@ -85,7 +85,7 @@ func TestLogCommand_StdoutAndStderr(t *testing.T) {
 
 	handler := rules.BuildHandler(upstream)
 
-	req := httptest.NewRequest("GET", "/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -96,7 +96,7 @@ func TestLogCommand_StdoutAndStderr(t *testing.T) {
 }
 
 func TestLogCommand_DifferentLogLevels(t *testing.T) {
-	upstream := mockUpstream(404, "not found")
+	upstream := mockUpstream(http.StatusNotFound, "not found")
 
 	infoFile := TestRandomFileName()
 	warnFile := TestRandomFileName()
@@ -140,7 +140,7 @@ func TestLogCommand_TemplateVariables(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Custom-Header", "custom-value")
 		w.Header().Set("Content-Length", "42")
-		w.WriteHeader(201)
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("created"))
 	})
 
@@ -176,13 +176,13 @@ func TestLogCommand_ConditionalLogging(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/error":
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("internal server error"))
 		case "/notfound":
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("not found"))
 		default:
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("success"))
 		}
 	})
@@ -206,22 +206,22 @@ func TestLogCommand_ConditionalLogging(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	// Test success request
-	req1 := httptest.NewRequest("GET", "/success", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/success", nil)
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
-	assert.Equal(t, 200, w1.Code)
+	assert.Equal(t, http.StatusOK, w1.Code)
 
 	// Test not found request
-	req2 := httptest.NewRequest("GET", "/notfound", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/notfound", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
-	assert.Equal(t, 404, w2.Code)
+	assert.Equal(t, http.StatusNotFound, w2.Code)
 
 	// Test server error request
-	req3 := httptest.NewRequest("POST", "/error", nil)
+	req3 := httptest.NewRequest(http.MethodPost, "/error", nil)
 	w3 := httptest.NewRecorder()
 	handler.ServeHTTP(w3, req3)
-	assert.Equal(t, 500, w3.Code)
+	assert.Equal(t, http.StatusInternalServerError, w3.Code)
 
 	// Verify success log
 	successContent := TestFileContent(successFile)
@@ -238,7 +238,7 @@ func TestLogCommand_ConditionalLogging(t *testing.T) {
 }
 
 func TestLogCommand_MultipleLogEntries(t *testing.T) {
-	upstream := mockUpstream(200, "response")
+	upstream := mockUpstream(http.StatusOK, "response")
 
 	tempFile := TestRandomFileName()
 
@@ -266,7 +266,7 @@ func TestLogCommand_MultipleLogEntries(t *testing.T) {
 		req := httptest.NewRequest(reqInfo.method, reqInfo.path, nil)
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
-		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 	}
 
 	// Verify all requests were logged

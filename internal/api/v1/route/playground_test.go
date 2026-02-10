@@ -79,7 +79,7 @@ func TestPlayground(t *testing.T) {
 				if len(resp.MatchedRules) != 1 {
 					t.Errorf("expected 1 matched rule, got %d", len(resp.MatchedRules))
 				}
-				if resp.FinalResponse.StatusCode != 403 {
+				if resp.FinalResponse.StatusCode != http.StatusForbidden {
 					t.Errorf("expected status 403, got %d", resp.FinalResponse.StatusCode)
 				}
 				if resp.UpstreamCalled {
@@ -168,7 +168,7 @@ func TestPlayground(t *testing.T) {
 				if len(resp.MatchedRules) != 1 {
 					t.Errorf("expected 1 matched rule, got %d", len(resp.MatchedRules))
 				}
-				if resp.FinalResponse.StatusCode != 405 {
+				if resp.FinalResponse.StatusCode != http.StatusMethodNotAllowed {
 					t.Errorf("expected status 405, got %d", resp.FinalResponse.StatusCode)
 				}
 			},
@@ -179,7 +179,7 @@ func TestPlayground(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create request
 			body, _ := json.Marshal(tt.request)
-			req := httptest.NewRequest("POST", "/api/v1/route/playground", bytes.NewReader(body))
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/route/playground", bytes.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
 
 			// Create response recorder
@@ -214,7 +214,7 @@ func TestPlayground(t *testing.T) {
 func TestPlaygroundInvalidRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	req := httptest.NewRequest("POST", "/api/v1/route/playground", bytes.NewReader([]byte(`{}`)))
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/route/playground", bytes.NewReader([]byte(`{}`)))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()

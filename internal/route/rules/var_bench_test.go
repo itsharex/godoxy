@@ -2,6 +2,7 @@ package rules
 
 import (
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -11,9 +12,9 @@ import (
 
 func BenchmarkExpandVars(b *testing.B) {
 	testResponseModifier := httputils.NewResponseModifier(httptest.NewRecorder())
-	testResponseModifier.WriteHeader(200)
+	testResponseModifier.WriteHeader(http.StatusOK)
 	testResponseModifier.Write([]byte("Hello, world!"))
-	testRequest := httptest.NewRequest("GET", "/", nil)
+	testRequest := httptest.NewRequest(http.MethodGet, "/", nil)
 	testRequest.Header.Set("User-Agent", "test-agent/1.0")
 	testRequest.Header.Set("X-Custom", "value1,value2")
 	testRequest.ContentLength = 12345

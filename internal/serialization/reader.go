@@ -15,8 +15,10 @@ func NewSubstituteEnvReader(reader io.Reader) *SubstituteEnvReader {
 	return &SubstituteEnvReader{reader: reader}
 }
 
-const peekSize = 4096
-const maxVarNameLength = 256
+const (
+	peekSize         = 4096
+	maxVarNameLength = 256
+)
 
 func (r *SubstituteEnvReader) Read(p []byte) (n int, err error) {
 	// Return buffered data first
@@ -66,6 +68,7 @@ func (r *SubstituteEnvReader) Read(p []byte) (n int, err error) {
 			if nMore > 0 {
 				incomplete = append(incomplete, more[:nMore]...)
 				// Check if pattern is now complete
+				//nolint:modernize
 				if idx := bytes.IndexByte(incomplete, '}'); idx >= 0 {
 					// Pattern complete, append the rest back to chunk
 					chunk = append(chunk, incomplete...)

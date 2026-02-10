@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/yusing/godoxy/internal/common"
 	"github.com/yusing/godoxy/internal/entrypoint"
 	. "github.com/yusing/godoxy/internal/net/gphttp/middleware"
 	"github.com/yusing/godoxy/internal/route"
@@ -40,7 +39,7 @@ func TestBypassCIDR(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "http://example.com", nil)
+			req := httptest.NewRequest(http.MethodGet, "http://example.com", nil)
 			req.RemoteAddr = test.remoteAddr
 			recorder := httptest.NewRecorder()
 			mr.ModifyRequest(noOpHandler, recorder, req)
@@ -76,7 +75,7 @@ func TestBypassPath(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "http://example.com"+test.path, nil)
+			req := httptest.NewRequest(http.MethodGet, "http://example.com"+test.path, nil)
 			recorder := httptest.NewRecorder()
 			mr.ModifyRequest(noOpHandler, recorder, req)
 			expect.NoError(t, err)
@@ -126,7 +125,7 @@ func TestReverseProxyBypass(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "http://example.com"+test.path, nil)
+			req := httptest.NewRequest(http.MethodGet, "http://example.com"+test.path, nil)
 			recorder := httptest.NewRecorder()
 			rp.ServeHTTP(recorder, req)
 			if test.expectBypass {
@@ -160,7 +159,7 @@ func TestBypassResponse(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				req := httptest.NewRequest("GET", "http://example.com"+test.path, nil)
+				req := httptest.NewRequest(http.MethodGet, "http://example.com"+test.path, nil)
 				resp := &http.Response{
 					StatusCode: http.StatusOK,
 					Body:       io.NopCloser(strings.NewReader("test")),
@@ -201,7 +200,7 @@ func TestBypassResponse(t *testing.T) {
 					StatusCode: test.statusCode,
 					Body:       io.NopCloser(strings.NewReader("test")),
 					Header:     make(http.Header),
-					Request:    httptest.NewRequest("GET", "http://example.com", nil),
+					Request:    httptest.NewRequest(http.MethodGet, "http://example.com", nil),
 				}
 				mErr := mr.ModifyResponse(resp)
 				expect.NoError(t, mErr)
@@ -232,10 +231,12 @@ func TestEntrypointBypassRoute(t *testing.T) {
 
 	entry := entrypoint.NewTestEntrypoint(t, nil)
 	_, err = route.NewStartedTestRoute(t, &route.Route{
-		Alias: "test-route",
-		Host:  host,
+		Alias:  "test-route",
+		Scheme: routeTypes.SchemeHTTP,
+		Host:   host,
 		Port: routeTypes.Port{
-			Proxy: portInt,
+			Listening: 1000,
+			Proxy:     portInt,
 		},
 	})
 	expect.NoError(t, err)
@@ -255,8 +256,8 @@ func TestEntrypointBypassRoute(t *testing.T) {
 	expect.NoError(t, err)
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "http://test-route.example.com", nil)
-	server, ok := entry.GetServer(common.ProxyHTTPAddr)
+	req := httptest.NewRequest(http.MethodGet, "http://test-route.example.com", nil)
+	server, ok := entry.GetServer(":1000")
 	if !ok {
 		t.Fatal("server not found")
 	}

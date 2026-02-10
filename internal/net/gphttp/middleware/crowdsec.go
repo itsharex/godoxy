@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -48,7 +49,7 @@ func (m *crowdsecMiddleware) setup() {
 
 func (m *crowdsecMiddleware) finalize() error {
 	if !strings.HasPrefix(m.Endpoint, "/") {
-		return fmt.Errorf("endpoint must start with /")
+		return errors.New("endpoint must start with /")
 	}
 	if m.Timeout == 0 {
 		m.Timeout = 5 * time.Second
@@ -179,12 +180,12 @@ func (m *crowdsecMiddleware) buildCrowdSecURL(ctx context.Context) (string, erro
 
 		// If not found in routes, assume it's an IP address
 		if m.Port == 0 {
-			return "", fmt.Errorf("port must be specified when using IP address")
+			return "", errors.New("port must be specified when using IP address")
 		}
 		return fmt.Sprintf("http://%s%s", net.JoinHostPort(m.Route, strconv.Itoa(m.Port)), m.Endpoint), nil
 	}
 
-	return "", fmt.Errorf("route or IP address must be specified")
+	return "", errors.New("route or IP address must be specified")
 }
 
 func (m *crowdsecMiddleware) getHTTPVersion(r *http.Request) string {

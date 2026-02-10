@@ -57,7 +57,7 @@ type (
 		PathPatterns []string                       `json:"path_patterns,omitempty" extensions:"x-nullable"`
 		Rules        rules.Rules                    `json:"rules,omitempty" extensions:"x-nullable"`
 		RuleFile     string                         `json:"rule_file,omitempty" extensions:"x-nullable"`
-		HealthCheck  types.HealthCheckConfig        `json:"healthcheck,omitempty" extensions:"x-nullable"` // null on load-balancer routes
+		HealthCheck  types.HealthCheckConfig        `json:"healthcheck,omitzero" extensions:"x-nullable"` // null on load-balancer routes
 		LoadBalance  *types.LoadBalancerConfig      `json:"load_balance,omitempty" extensions:"x-nullable"`
 		Middlewares  map[string]types.LabelMap      `json:"middlewares,omitempty" extensions:"x-nullable"`
 		Homepage     *homepage.ItemConfig           `json:"homepage"`
@@ -276,10 +276,10 @@ func (r *Route) validate() error {
 		case route.SchemeFileServer:
 			r.Host = ""
 			r.Port.Proxy = 0
-			r.LisURL = gperr.Collect(&errs, nettypes.ParseURL, fmt.Sprintf("https://%s", net.JoinHostPort(r.Bind, strconv.Itoa(r.Port.Listening))))
+			r.LisURL = gperr.Collect(&errs, nettypes.ParseURL, "https://"+net.JoinHostPort(r.Bind, strconv.Itoa(r.Port.Listening)))
 			r.ProxyURL = gperr.Collect(&errs, nettypes.ParseURL, "file://"+r.Root)
 		case route.SchemeHTTP, route.SchemeHTTPS, route.SchemeH2C:
-			r.LisURL = gperr.Collect(&errs, nettypes.ParseURL, fmt.Sprintf("https://%s", net.JoinHostPort(r.Bind, strconv.Itoa(r.Port.Listening))))
+			r.LisURL = gperr.Collect(&errs, nettypes.ParseURL, "https://"+net.JoinHostPort(r.Bind, strconv.Itoa(r.Port.Listening)))
 			r.ProxyURL = gperr.Collect(&errs, nettypes.ParseURL, fmt.Sprintf("%s://%s", r.Scheme, net.JoinHostPort(r.Host, strconv.Itoa(r.Port.Proxy))))
 		case route.SchemeTCP, route.SchemeUDP:
 			bindIP := net.ParseIP(r.Bind)
@@ -588,10 +588,9 @@ func (r *Route) References() []string {
 				return []string{r.Proxmox.VMName, aliasRef, r.Proxmox.Services[0]}
 			}
 			return []string{r.Proxmox.Services[0], aliasRef}
-		} else {
-			if r.Proxmox.VMName != aliasRef {
-				return []string{r.Proxmox.VMName, aliasRef}
-			}
+		}
+		if r.Proxmox.VMName != aliasRef {
+			return []string{r.Proxmox.VMName, aliasRef}
 		}
 	}
 	return []string{aliasRef}

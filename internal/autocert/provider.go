@@ -467,7 +467,7 @@ func (p *Provider) scheduleRenewal(parent task.Parent) {
 			log.Warn().Err(p.fmtError(err)).Msg("autocert: cert renew failed")
 			notif.Notify(&notif.LogMessage{
 				Level: zerolog.ErrorLevel,
-				Title: fmt.Sprintf("SSL certificate renewal failed for %s", p.GetName()),
+				Title: "SSL certificate renewal failed for " + p.GetName(),
 				Body:  notif.MessageBody(err.Error()),
 			})
 			return
@@ -477,7 +477,7 @@ func (p *Provider) scheduleRenewal(parent task.Parent) {
 
 			notif.Notify(&notif.LogMessage{
 				Level: zerolog.InfoLevel,
-				Title: fmt.Sprintf("SSL certificate renewed for %s", p.GetName()),
+				Title: "SSL certificate renewed for " + p.GetName(),
 				Body:  notif.ListBody(p.cfg.Domains),
 			})
 

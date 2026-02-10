@@ -76,6 +76,7 @@ var commands = map[string]struct {
 			if len(args) != 0 {
 				return nil, ErrExpectNoArg
 			}
+			//nolint:nilnil
 			return nil, nil
 		},
 		build: func(args any) CommandHandler {
@@ -329,7 +330,7 @@ var commands = map[string]struct {
 				helpExample(CommandSet, "header", "User-Agent", "godoxy"),
 			),
 			args: map[string]string{
-				"target": fmt.Sprintf("the target to set, can be %s", strings.Join(AllFields, ", ")),
+				"target": "the target to set, can be " + strings.Join(AllFields, ", "),
 				"field":  "the field to set",
 				"value":  "the value to set",
 			},
@@ -349,7 +350,7 @@ var commands = map[string]struct {
 				helpExample(CommandAdd, "header", "X-Foo", "bar"),
 			),
 			args: map[string]string{
-				"target": fmt.Sprintf("the target to add, can be %s", strings.Join(AllFields, ", ")),
+				"target": "the target to add, can be " + strings.Join(AllFields, ", "),
 				"field":  "the field to add",
 				"value":  "the value to add",
 			},
@@ -369,7 +370,7 @@ var commands = map[string]struct {
 				helpExample(CommandRemove, "header", "User-Agent"),
 			),
 			args: map[string]string{
-				"target": fmt.Sprintf("the target to remove, can be %s", strings.Join(AllFields, ", ")),
+				"target": "the target to remove, can be " + strings.Join(AllFields, ", "),
 				"field":  "the field to remove",
 			},
 		},
@@ -511,8 +512,10 @@ var commands = map[string]struct {
 	},
 }
 
-type onLogArgs = Tuple3[zerolog.Level, io.WriteCloser, templateString]
-type onNotifyArgs = Tuple4[zerolog.Level, string, templateString, templateString]
+type (
+	onLogArgs    = Tuple3[zerolog.Level, io.WriteCloser, templateString]
+	onNotifyArgs = Tuple4[zerolog.Level, string, templateString, templateString]
+)
 
 // Parse implements strutils.Parser.
 func (cmd *Command) Parse(v string) error {

@@ -26,11 +26,9 @@ var (
 
 const configEventFlushInterval = 500 * time.Millisecond
 
-const (
-	cfgRenameWarn = `Config file renamed, not reloading.
-Make sure you rename it back before next time you start.`
-	cfgDeleteWarn = `Config file deleted, not reloading.
-You may run "ls-config" to show or dump the current config.`
+var (
+	errCfgRenameWarn = errors.New("config file renamed, not reloading; Make sure you rename it back before next time you start")
+	errCfgDeleteWarn = errors.New(`config file deleted, not reloading; You may run "ls-config" to show or dump the current config`)
 )
 
 func logNotifyError(action string, err error) {
@@ -142,11 +140,11 @@ func OnConfigChange(ev []watcherEvents.Event) {
 	// no matter how many events during the interval
 	// just reload once and check the last event
 	switch ev[len(ev)-1].Action {
-	case events.ActionFileRenamed:
-		logNotifyWarn("rename", errors.New(cfgRenameWarn))
+	case watcherEvents.ActionFileRenamed:
+		logNotifyWarn("rename", errCfgRenameWarn)
 		return
-	case events.ActionFileDeleted:
-		logNotifyWarn("delete", errors.New(cfgDeleteWarn))
+	case watcherEvents.ActionFileDeleted:
+		logNotifyWarn("delete", errCfgDeleteWarn)
 		return
 	}
 

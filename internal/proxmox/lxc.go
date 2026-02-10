@@ -109,7 +109,7 @@ func (n *Node) LXCIsStopped(ctx context.Context, vmid uint64) (bool, error) {
 }
 
 func (n *Node) LXCSetShutdownTimeout(ctx context.Context, vmid uint64, timeout time.Duration) error {
-	return n.client.Put(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/config", n.name, vmid), map[string]interface{}{
+	return n.client.Put(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/config", n.name, vmid), map[string]any{
 		"startup": fmt.Sprintf("down=%.0f", timeout.Seconds()),
 	}, nil)
 }

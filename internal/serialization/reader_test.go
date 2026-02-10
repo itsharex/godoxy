@@ -2,8 +2,8 @@ package serialization
 
 import (
 	"bytes"
+	"errors"
 	"io"
-	"os"
 	"strings"
 	"testing"
 
@@ -11,8 +11,7 @@ import (
 )
 
 func TestSubstituteEnvReader_Basic(t *testing.T) {
-	os.Setenv("TEST_VAR", "hello")
-	defer os.Unsetenv("TEST_VAR")
+	t.Setenv("TEST_VAR", "hello")
 
 	input := []byte(`key: ${TEST_VAR}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
@@ -23,10 +22,8 @@ func TestSubstituteEnvReader_Basic(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_Multiple(t *testing.T) {
-	os.Setenv("VAR1", "first")
-	os.Setenv("VAR2", "second")
-	defer os.Unsetenv("VAR1")
-	defer os.Unsetenv("VAR2")
+	t.Setenv("VAR1", "first")
+	t.Setenv("VAR2", "second")
 
 	input := []byte(`a: ${VAR1}, b: ${VAR2}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
@@ -46,8 +43,6 @@ func TestSubstituteEnvReader_NoSubstitution(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_UnsetEnvError(t *testing.T) {
-	os.Unsetenv("UNSET_VAR_FOR_TEST")
-
 	input := []byte(`key: ${UNSET_VAR_FOR_TEST}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
 
@@ -57,8 +52,7 @@ func TestSubstituteEnvReader_UnsetEnvError(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_SmallBuffer(t *testing.T) {
-	os.Setenv("SMALL_BUF_VAR", "value")
-	defer os.Unsetenv("SMALL_BUF_VAR")
+	t.Setenv("SMALL_BUF_VAR", "value")
 
 	input := []byte(`key: ${SMALL_BUF_VAR}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
@@ -70,7 +64,7 @@ func TestSubstituteEnvReader_SmallBuffer(t *testing.T) {
 		if n > 0 {
 			result = append(result, buf[:n]...)
 		}
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		require.NoError(t, err)
@@ -79,8 +73,7 @@ func TestSubstituteEnvReader_SmallBuffer(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_SpecialChars(t *testing.T) {
-	os.Setenv("SPECIAL_VAR", `hello "world" \n`)
-	defer os.Unsetenv("SPECIAL_VAR")
+	t.Setenv("SPECIAL_VAR", `hello "world" \n`)
 
 	input := []byte(`key: ${SPECIAL_VAR}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
@@ -91,8 +84,7 @@ func TestSubstituteEnvReader_SpecialChars(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_EmptyValue(t *testing.T) {
-	os.Setenv("EMPTY_VAR", "")
-	defer os.Unsetenv("EMPTY_VAR")
+	t.Setenv("EMPTY_VAR", "")
 
 	input := []byte(`key: ${EMPTY_VAR}`)
 	reader := NewSubstituteEnvReader(bytes.NewReader(input))
@@ -103,8 +95,7 @@ func TestSubstituteEnvReader_EmptyValue(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_LargeInput(t *testing.T) {
-	os.Setenv("LARGE_VAR", "replaced")
-	defer os.Unsetenv("LARGE_VAR")
+	t.Setenv("LARGE_VAR", "replaced")
 
 	prefix := strings.Repeat("x", 5000)
 	suffix := strings.Repeat("y", 5000)
@@ -119,8 +110,7 @@ func TestSubstituteEnvReader_LargeInput(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_PatternAtBoundary(t *testing.T) {
-	os.Setenv("BOUNDARY_VAR", "boundary_value")
-	defer os.Unsetenv("BOUNDARY_VAR")
+	t.Setenv("BOUNDARY_VAR", "boundary_value")
 
 	prefix := strings.Repeat("a", 4090)
 	input := []byte(prefix + "${BOUNDARY_VAR}")
@@ -134,10 +124,8 @@ func TestSubstituteEnvReader_PatternAtBoundary(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_MultiplePatternsBoundary(t *testing.T) {
-	os.Setenv("VAR_A", "aaa")
-	os.Setenv("VAR_B", "bbb")
-	defer os.Unsetenv("VAR_A")
-	defer os.Unsetenv("VAR_B")
+	t.Setenv("VAR_A", "aaa")
+	t.Setenv("VAR_B", "bbb")
 
 	prefix := strings.Repeat("x", 4090)
 	input := []byte(prefix + "${VAR_A} middle ${VAR_B}")
@@ -151,12 +139,9 @@ func TestSubstituteEnvReader_MultiplePatternsBoundary(t *testing.T) {
 }
 
 func TestSubstituteEnvReader_YAMLConfig(t *testing.T) {
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "5432")
-	os.Setenv("DB_PASSWORD", "secret123")
-	defer os.Unsetenv("DB_HOST")
-	defer os.Unsetenv("DB_PORT")
-	defer os.Unsetenv("DB_PASSWORD")
+	t.Setenv("DB_HOST", "localhost")
+	t.Setenv("DB_PORT", "5432")
+	t.Setenv("DB_PASSWORD", "secret123")
 
 	input := []byte(`database:
   host: ${DB_HOST}

@@ -117,12 +117,21 @@ mod-tidy:
 		cd ${PWD}/$$path && go mod tidy; \
 	done
 
-build:
+minify-js:
+	for file in $$(find internal/ -name '*.js' | grep -v -- '-min\.js$$'); do \
+		ext="$${file##*.}"; \
+		base="$${file%.*}"; \
+		min_file="$${base}-min.$$ext"; \
+		echo "minifying $$file -> $$min_file"; \
+		bunx --bun uglify-js $$file --compress --mangle --output $$min_file; \
+	done
+
+build: minify-js
 	mkdir -p $(shell dirname ${BIN_PATH})
 	go build -C ${PWD} ${BUILD_FLAGS} -o ${BIN_PATH} ./cmd
 	${POST_BUILD}
 
-run:
+run: minify-js
 	cd ${PWD} && [ -f .env ] && godotenv -f .env go run ${BUILD_FLAGS} ./cmd
 
 dev:
@@ -139,9 +148,6 @@ benchmark:
 	fi
 	sleep 1
 	@./scripts/benchmark.sh
-
-dev-run: build
-	cd dev-data && ${BIN_PATH}
 
 rapid-crash:
 	docker run --restart=always --name test_crash -p 80 debian:bookworm-slim /bin/cat &&\

@@ -25,7 +25,7 @@ var loadingPageTmpl = template.Must(template.New("loading_page").Parse(string(lo
 //go:embed html/style.css
 var cssBytes []byte
 
-//go:embed html/loading.js
+//go:embed html/loading-min.js
 var jsBytes []byte
 
 func (w *Watcher) writeLoadingPage(rw http.ResponseWriter) error {

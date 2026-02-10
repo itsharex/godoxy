@@ -45,3 +45,6 @@ dev-data/
 RELEASE_NOTES.md
 CLAUDE.md
 .kilocode/**
+
+# minified files
+**/*-min.*

@@ -43,7 +43,7 @@ window.onload = async function () {
     addConsoleLine(
       "error",
       "Configuration error: wakeEventsPath not defined",
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     loadingDotsEl.style.display = "none";
     return;
@@ -53,7 +53,7 @@ window.onload = async function () {
     addConsoleLine(
       "error",
       "Browser does not support Server-Sent Events",
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     loadingDotsEl.style.display = "none";
     return;
@@ -63,39 +63,41 @@ window.onload = async function () {
   const eventSource = new EventSource(wakeEventsPath);
 
   eventSource.onmessage = function (event) {
-    let data;
+    let evt;
     try {
-      data = JSON.parse(event.data);
+      evt = JSON.parse(event.data);
     } catch (error) {
       addConsoleLine(
         "error",
         "Invalid event data: " + event.data,
-        new Date().toISOString()
+        new Date().toISOString(),
       );
       return;
     }
 
-    if (data.type === "ready") {
+    const payload = evt.data || {};
+    const type = evt.action;
+    const timestamp = evt.timestamp;
+
+    if (type === "ready") {
       ready = true;
       // Container is ready, hide loading dots and refresh
       loadingDotsEl.style.display = "none";
-      addConsoleLine(
-        data.type,
-        "Container is ready, refreshing...",
-        data.timestamp
-      );
+      addConsoleLine(type, "Container is ready, refreshing...", timestamp);
       setTimeout(() => {
         window.location.reload();
       }, 200);
-    } else if (data.type === "error") {
+    } else if (type === "error" || evt.level === "error") {
       // Show error message and hide loading dots
-      const errorMessage = data.error || data.message;
-      addConsoleLine(data.type, errorMessage, data.timestamp);
+      const errorMessage = payload.error || payload.message || "Unknown error";
+      addConsoleLine(type, errorMessage, timestamp);
       loadingDotsEl.style.display = "none";
       eventSource.close();
     } else {
       // Show other message types
-      addConsoleLine(data.type, data.message, data.timestamp);
+      const message =
+        payload.message || `${evt.category || "idlewatcher"}: ${type}`;
+      addConsoleLine(type, message, timestamp);
     }
   };
 
@@ -107,7 +109,7 @@ window.onload = async function () {
     addConsoleLine(
       "error",
       "Connection lost. Please refresh the page.",
-      new Date().toISOString()
+      new Date().toISOString(),
     );
     loadingDotsEl.style.display = "none";
     eventSource.close();

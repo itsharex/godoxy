@@ -3,16 +3,14 @@ package idlewatcher
 import (
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/bytedance/sonic"
+	gevents "github.com/yusing/goutils/events"
 )
 
 type WakeEvent struct {
-	Type      string    `json:"type"`
-	Message   string    `json:"message"`
-	Timestamp time.Time `json:"timestamp"`
-	Error     string    `json:"error,omitempty"`
+	Message string `json:"message"`
+	Error   string `json:"error,omitempty"`
 }
 
 type WakeEventType string
@@ -27,11 +25,18 @@ const (
 	WakeEventError         WakeEventType = "error"
 )
 
-func (w *Watcher) newWakeEvent(eventType WakeEventType, message string, err error) *WakeEvent {
+func writeSSE(w io.Writer, v any) error {
+	data, err := sonic.Marshal(v)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+	return err
+}
+
+func (w *Watcher) newWakeEvent(message string, err error) *WakeEvent {
 	event := &WakeEvent{
-		Type:      string(eventType),
-		Message:   message,
-		Timestamp: time.Now(),
+		Message: message,
 	}
 	if err != nil {
 		event.Error = err.Error()
@@ -49,28 +54,24 @@ func (e *WakeEvent) WriteSSE(w io.Writer) error {
 }
 
 func (w *Watcher) clearEventHistory() {
-	w.eventHistoryMu.Lock()
-	w.eventHistory = w.eventHistory[:0]
-	w.eventHistoryMu.Unlock()
+	w.events.Clear()
 }
 
 func (w *Watcher) sendEvent(eventType WakeEventType, message string, err error) {
 	// NOTE: events will be cleared on stop/pause
-	event := w.newWakeEvent(eventType, message, err)
+	wakeEvent := w.newWakeEvent(message, err)
 
 	w.l.Debug().Str("event", string(eventType)).Str("message", message).Err(err).Msg("sending event")
 
-	// Store event in history
-	w.eventHistoryMu.Lock()
-	w.eventHistory = append(w.eventHistory, *event)
-	w.eventHistoryMu.Unlock()
-
-	// Broadcast to current subscribers
-	for ch := range w.eventChs.Range {
-		select {
-		case ch <- event:
-		default:
-			// channel full, drop event
-		}
+	level := gevents.LevelInfo
+	if eventType == WakeEventError {
+		level = gevents.LevelError
 	}
+
+	w.events.Add(gevents.NewEvent(
+		level,
+		w.cfg.ContainerName(),
+		string(eventType),
+		wakeEvent,
+	))
 }

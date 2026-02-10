@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/puzpuzpuz/xsync/v4"
 	idlewatcher "github.com/yusing/godoxy/internal/idlewatcher/types"
 	"github.com/yusing/godoxy/internal/types"
+	gevents "github.com/yusing/goutils/events"
 )
 
 func DebugHandler(rw http.ResponseWriter, r *http.Request) {
 	w := &Watcher{
-		eventChs: xsync.NewMap[chan *WakeEvent, struct{}](),
+		events: gevents.NewHistory(),
 		cfg: &types.IdlewatcherConfig{
 			IdlewatcherProviderConfig: types.IdlewatcherProviderConfig{
 				Docker: &types.DockerConfig{
@@ -58,13 +58,7 @@ func DebugHandler(rw http.ResponseWriter, r *http.Request) {
 				return
 			case <-ticker.C:
 				idx := rand.IntN(len(events))
-				for ch := range w.eventChs.Range {
-					ch <- &WakeEvent{
-						Type:      string(events[idx]),
-						Message:   messages[idx],
-						Timestamp: time.Now(),
-					}
-				}
+				w.sendEvent(events[idx], messages[idx], nil)
 			}
 		}
 	default:

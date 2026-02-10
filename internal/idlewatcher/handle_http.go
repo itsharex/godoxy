@@ -47,15 +47,6 @@ func (w *Watcher) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (w *Watcher) handleWakeEventsSSE(rw http.ResponseWriter, r *http.Request) {
-	// Create a dedicated channel for this SSE connection and register it
-	eventCh := make(chan *WakeEvent, 10)
-	w.eventChs.Store(eventCh, struct{}{})
-	// Clean up when done
-	defer func() {
-		w.eventChs.Delete(eventCh)
-		close(eventCh)
-	}()
-
 	// Set SSE headers
 	rw.Header().Set("Content-Type", "text/event-stream")
 	rw.Header().Set("Cache-Control", "no-cache")
@@ -66,18 +57,16 @@ func (w *Watcher) handleWakeEventsSSE(rw http.ResponseWriter, r *http.Request) {
 	controller := http.NewResponseController(rw)
 	ctx := r.Context()
 
-	// Send historical events first
-	w.eventHistoryMu.RLock()
-	historicalEvents := make([]WakeEvent, len(w.eventHistory))
-	copy(historicalEvents, w.eventHistory)
-	w.eventHistoryMu.RUnlock()
+	current, ch, cancel := w.events.SnapshotAndListen()
+	defer cancel()
 
-	for _, event := range historicalEvents {
+	// Send historical events first
+	for _, evt := range current {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			err := errors.Join(event.WriteSSE(rw), controller.Flush())
+			err := errors.Join(writeSSE(rw, evt), controller.Flush())
 			if err != nil {
 				log.Err(err).Msg("Failed to write SSE event")
 				return
@@ -88,8 +77,8 @@ func (w *Watcher) handleWakeEventsSSE(rw http.ResponseWriter, r *http.Request) {
 	// Listen for new events and send them to client
 	for {
 		select {
-		case event := <-eventCh:
-			err := errors.Join(event.WriteSSE(rw), controller.Flush())
+		case evt := <-ch:
+			err := errors.Join(writeSSE(rw, evt), controller.Flush())
 			if err != nil {
 				log.Err(err).Msg("Failed to write SSE event")
 				return

@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/yusing/ds/ordered"
@@ -23,6 +22,7 @@ import (
 	"github.com/yusing/godoxy/internal/types"
 	"github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
+	gevents "github.com/yusing/goutils/events"
 	"github.com/yusing/goutils/http/reverseproxy"
 	strutils "github.com/yusing/goutils/strings"
 	"github.com/yusing/goutils/synk"
@@ -64,12 +64,9 @@ type (
 		readyNotifyCh chan struct{} // notifies when container becomes ready
 		task          *task.Task
 
-		// SSE event broadcasting, HTTP routes only
-		eventChs       *xsync.Map[chan *WakeEvent, struct{}]
-		eventHistory   []WakeEvent  // Global event history buffer
-		eventHistoryMu sync.RWMutex // Mutex for event history
+		// Per-watcher event history (for SSE and debug)
+		events *gevents.History
 
-		// FIXME: missing dependencies
 		dependsOn []*dependency
 	}
 
@@ -133,7 +130,7 @@ func NewWatcher(parent task.Parent, r types.Route, cfg *types.IdlewatcherConfig)
 			idleTicker:    time.NewTicker(cfg.IdleTimeout),
 			healthTicker:  time.NewTicker(idleWakerCheckInterval),
 			readyNotifyCh: make(chan struct{}, 1), // buffered to avoid blocking
-			eventChs:      xsync.NewMap[chan *WakeEvent, struct{}](),
+			events:        gevents.NewHistory(),
 			cfg:           cfg,
 			routeHelper: routeHelper{
 				hc: monitor.NewMonitor(r),
@@ -321,11 +318,12 @@ func NewWatcher(parent task.Parent, r types.Route, cfg *types.IdlewatcherConfig)
 			delete(watcherMap, key)
 			watcherMapMu.Unlock()
 
-			if errors.Is(cause, errCauseReload) {
+			switch {
+			case errors.Is(cause, errCauseReload):
 				// no log
-			} else if errors.Is(cause, errCauseContainerDestroy) || errors.Is(cause, task.ErrProgramExiting) || errors.Is(cause, config.ErrConfigChanged) {
+			case errors.Is(cause, errCauseContainerDestroy), errors.Is(cause, task.ErrProgramExiting), errors.Is(cause, config.ErrConfigChanged):
 				w.l.Info().Msg("idlewatcher stopped")
-			} else {
+			default:
 				w.l.Err(cause).Msg("idlewatcher stopped unexpectedly")
 			}
 

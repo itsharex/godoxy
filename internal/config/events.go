@@ -15,6 +15,7 @@ import (
 	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
 	"github.com/yusing/goutils/eventqueue"
+	"github.com/yusing/goutils/events"
 	"github.com/yusing/goutils/strings/ansi"
 	"github.com/yusing/goutils/task"
 )
@@ -38,6 +39,7 @@ func logNotifyError(action string, err error) {
 		Title: fmt.Sprintf("Config %s error", action),
 		Body:  notif.ErrorBody(err),
 	})
+	events.Global.Add(events.NewEvent(events.LevelError, "config", action, err))
 }
 
 func logNotifyWarn(action string, err error) {
@@ -47,6 +49,7 @@ func logNotifyWarn(action string, err error) {
 		Title: fmt.Sprintf("Config %s warning", action),
 		Body:  notif.ErrorBody(err),
 	})
+	events.Global.Add(events.NewEvent(events.LevelWarn, "config", action, err))
 }
 
 func Load() error {
@@ -90,6 +93,8 @@ func Load() error {
 }
 
 func Reload() error {
+	events.Global.Add(events.NewEvent(events.LevelInfo, "config", "reload", nil))
+
 	// avoid race between config change and API reload request
 	reloadMu.Lock()
 	defer reloadMu.Unlock()

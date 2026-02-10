@@ -78,6 +78,7 @@ func NewHandler(requireAuth bool) *gin.Engine {
 		v1.GET("/health", apiV1.Health)
 		v1.GET("/icons", apiV1.Icons)
 		v1.GET("/stats", apiV1.Stats)
+		v1.GET("/events", apiV1.Events)
 
 		route := v1.Group("/route")
 		{

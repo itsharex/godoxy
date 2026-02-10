@@ -837,6 +837,45 @@
         "operationId": "stop"
       }
     },
+    "/events": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "v1"
+        ],
+        "summary": "Get events history",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/github_com_yusing_goutils_events.Event"
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: unauthorized",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error: internal error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-id": "events",
+        "operationId": "events"
+      }
+    },
     "/favicon": {
       "get": {
         "description": "Get favicon",
@@ -5029,6 +5068,7 @@
           "x-omitempty": false
         },
         "validationError": {
+          "description": "we need the structured error, not the plain string",
           "x-nullable": false,
           "x-omitempty": false
         }
@@ -5064,6 +5104,7 @@
       "type": "object",
       "properties": {
         "executionError": {
+          "description": "we need the structured error, not the plain string",
           "x-nullable": false,
           "x-omitempty": false
         },
@@ -6655,6 +6696,54 @@
         "timeout": {
           "description": "Timeout (optional) is the timeout (in seconds) to wait for the container\nto stop gracefully before forcibly terminating it with SIGKILL.\n\n- Use nil to use the default timeout (10 seconds).\n- Use '-1' to wait indefinitely.\n- Use '0' to not wait for the container to exit gracefully, and\n  immediately proceeds to forcibly terminating the container.\n- Other positive values are used as timeout (in seconds).",
           "type": "integer"
+        }
+      },
+      "x-nullable": false,
+      "x-omitempty": false
+    },
+    "events.Level": {
+      "type": "string",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ],
+      "x-enum-varnames": [
+        "LevelDebug",
+        "LevelInfo",
+        "LevelWarn",
+        "LevelError"
+      ],
+      "x-nullable": false,
+      "x-omitempty": false
+    },
+    "github_com_yusing_goutils_events.Event": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "category": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "data": {
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "level": {
+          "$ref": "#/definitions/events.Level",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "timestamp": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
         }
       },
       "x-nullable": false,

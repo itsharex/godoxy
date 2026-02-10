@@ -878,7 +878,8 @@ definitions:
         type: string
       "on":
         type: string
-      validationError: {}
+      validationError:
+        description: we need the structured error, not the plain string
     type: object
   PlaygroundRequest:
     properties:
@@ -895,7 +896,8 @@ definitions:
     type: object
   PlaygroundResponse:
     properties:
-      executionError: {}
+      executionError:
+        description: we need the structured error, not the plain string
       finalRequest:
         $ref: '#/definitions/FinalRequest'
       finalResponse:
@@ -1741,6 +1743,30 @@ definitions:
     required:
     - id
     type: object
+  events.Level:
+    enum:
+    - debug
+    - info
+    - warn
+    - error
+    type: string
+    x-enum-varnames:
+    - LevelDebug
+    - LevelInfo
+    - LevelWarn
+    - LevelError
+  github_com_yusing_goutils_events.Event:
+    properties:
+      action:
+        type: string
+      category:
+        type: string
+      data: {}
+      level:
+        $ref: '#/definitions/events.Level'
+      timestamp:
+        type: string
+    type: object
   icons.Source:
     enum:
     - https://
@@ -1802,11 +1828,11 @@ definitions:
         type: string
       kernel_version:
         type: string
+      load_avg_1m:
+        type: string
       load_avg_5m:
         type: string
       load_avg_15m:
-        type: string
-      load_avg_1m:
         type: string
       mem_pct:
         type: string
@@ -2447,6 +2473,31 @@ paths:
       tags:
       - docker
       x-id: stop
+  /events:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_yusing_goutils_events.Event'
+            type: array
+        "403":
+          description: 'Forbidden: unauthorized'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: 'Internal Server Error: internal error'
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get events history
+      tags:
+      - v1
+      x-id: events
   /favicon:
     get:
       consumes:

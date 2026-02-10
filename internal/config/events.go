@@ -12,8 +12,9 @@ import (
 	config "github.com/yusing/godoxy/internal/config/types"
 	"github.com/yusing/godoxy/internal/notif"
 	"github.com/yusing/godoxy/internal/watcher"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
+	"github.com/yusing/goutils/eventqueue"
 	"github.com/yusing/goutils/strings/ansi"
 	"github.com/yusing/goutils/task"
 )
@@ -124,19 +125,20 @@ func Reload() error {
 }
 
 func WatchChanges() {
-	t := task.RootTask("config_watcher", true)
-	eventQueue := events.NewEventQueue(
-		t,
-		configEventFlushInterval,
-		OnConfigChange,
-		func(err error) {
+	opts := eventqueue.Options[watcherEvents.Event]{
+		FlushInterval: configEventFlushInterval,
+		OnFlush:       OnConfigChange,
+		OnError: func(err error) {
 			logNotifyError("reload", err)
 		},
-	)
+		Debug: common.IsDebug,
+	}
+	t := task.RootTask("config_watcher", true)
+	eventQueue := eventqueue.New(t, opts)
 	eventQueue.Start(cfgWatcher.Events(t.Context()))
 }
 
-func OnConfigChange(ev []events.Event) {
+func OnConfigChange(ev []watcherEvents.Event) {
 	// no matter how many events during the interval
 	// just reload once and check the last event
 	switch ev[len(ev)-1].Action {

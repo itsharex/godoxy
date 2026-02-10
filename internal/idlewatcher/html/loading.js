@@ -1,6 +1,26 @@
+/**
+ * @typedef {"debug"|"info"|"warn"|"error"} EventLevel
+ * @see goutils/events/level.go
+ */
+
+/**
+ * @typedef {{ message?: string, error?: string }} WakeEvent
+ * @see internal/idlewatcher/events.go WakeEvent
+ */
+
+/**
+ * @typedef {"starting"|"waking_dep"|"dep_ready"|"container_woke"|"waiting_ready"|"ready"|"error"} WakeEventType
+ * @see internal/idlewatcher/events.go WakeEventType
+ */
+
+/**
+ * @typedef {{ timestamp: string, level: EventLevel, category: string, action: WakeEventType, data: WakeEvent }} WakeSSEEvent
+ * @see goutils/events/event.go Event
+ */
+
 let ready = false;
 
-window.onload = async function () {
+window.onload = async () => {
   const consoleEl = document.getElementById("console");
   const loadingDotsEl = document.getElementById("loading-dots");
 
@@ -9,6 +29,10 @@ window.onload = async function () {
     return;
   }
 
+  /**
+   * @param {string} timestamp - ISO timestamp string
+   * @returns {string}
+   */
   function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString("en-US", {
@@ -20,6 +44,11 @@ window.onload = async function () {
     });
   }
 
+  /**
+   * @param {string} type - Console line type (e.g. ready, error, or WakeEventType)
+   * @param {string} message
+   * @param {string} timestamp - ISO timestamp string
+   */
   function addConsoleLine(type, message, timestamp) {
     const line = document.createElement("div");
     line.className = `console-line ${type}`;
@@ -62,14 +91,15 @@ window.onload = async function () {
   // Connect to SSE endpoint
   const eventSource = new EventSource(wakeEventsPath);
 
-  eventSource.onmessage = function (event) {
+  eventSource.onmessage = (event) => {
+    /** @type {WakeSSEEvent} */
     let evt;
     try {
       evt = JSON.parse(event.data);
-    } catch (error) {
+    } catch {
       addConsoleLine(
         "error",
-        "Invalid event data: " + event.data,
+        `Invalid event data: ${event.data}`,
         new Date().toISOString(),
       );
       return;
@@ -95,13 +125,12 @@ window.onload = async function () {
       eventSource.close();
     } else {
       // Show other message types
-      const message =
-        payload.message || `${evt.category || "idlewatcher"}: ${type}`;
+      const message = payload.message;
       addConsoleLine(type, message, timestamp);
     }
   };
 
-  eventSource.onerror = function (event) {
+  eventSource.onerror = () => {
     if (ready) {
       // event will be closed by the server
       return;

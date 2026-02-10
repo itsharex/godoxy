@@ -42,7 +42,7 @@ import (
 //
 //   - format: "STATUS|CPU%%|MEM USAGE/LIMIT|MEM%%|NET I/O|BLOCK I/O"
 //   - example: running|31.1%|9.6GiB/20GiB|48.87%|4.7GiB/3.3GiB|25GiB/36GiB
-func (n *Node) LXCStats(ctx context.Context, vmid int, stream bool) (io.ReadCloser, error) {
+func (n *Node) LXCStats(ctx context.Context, vmid uint64, stream bool) (io.ReadCloser, error) {
 	if !stream {
 		resource, err := n.client.GetResource("lxc", vmid)
 		if err != nil {

@@ -18,7 +18,7 @@ import (
 type ProxmoxProvider struct {
 	*proxmox.Node
 
-	vmid    int
+	vmid    uint64
 	lxcName string
 	running bool
 }
@@ -27,7 +27,7 @@ const proxmoxStateCheckInterval = 1 * time.Second
 
 var ErrNodeNotFound = gperr.New("node not found in pool")
 
-func NewProxmoxProvider(ctx context.Context, nodeName string, vmid int) (idlewatcher.Provider, error) {
+func NewProxmoxProvider(ctx context.Context, nodeName string, vmid uint64) (idlewatcher.Provider, error) {
 	if nodeName == "" || vmid == 0 {
 		return nil, errors.New("node name and vmid are required")
 	}
@@ -102,7 +102,7 @@ func (p *ProxmoxProvider) Watch(ctx context.Context) (<-chan watcher.Event, <-ch
 
 		event := watcher.Event{
 			Type:      events.EventTypeDocker,
-			ActorID:   strconv.Itoa(p.vmid),
+			ActorID:   strconv.FormatUint(p.vmid, 10),
 			ActorName: p.lxcName,
 		}
 		for {

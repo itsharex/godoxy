@@ -212,7 +212,7 @@ func (r *Route) validate() error {
 			for _, p := range proxmoxProviders {
 				// First check if hostname, IP, or alias matches a node (node-level route)
 				if nodeName := p.Client().ReverseLookupNode(hostname, ip, r.Alias); nodeName != "" {
-					zero := 0
+					zero := uint64(0)
 					if r.Proxmox == nil {
 						r.Proxmox = &proxmox.NodeConfig{}
 					}
@@ -226,7 +226,7 @@ func (r *Route) validate() error {
 				// Then check if hostname, IP, or alias matches a VM resource
 				resource, _ := p.Client().ReverseLookupResource(ip, hostname, r.Alias)
 				if resource != nil {
-					vmid := int(resource.VMID)
+					vmid := resource.VMID
 					if r.Proxmox == nil {
 						r.Proxmox = &proxmox.NodeConfig{}
 					}
@@ -706,7 +706,7 @@ func (r *Route) MarshalZerologObject(e *zerolog.Event) {
 	if r.Proxmox != nil {
 		e.Str("proxmox", r.Proxmox.Node)
 		if r.Proxmox.VMID != nil {
-			e.Int("vmid", *r.Proxmox.VMID)
+			e.Uint64("vmid", *r.Proxmox.VMID)
 		}
 		if r.Proxmox.VMName != "" {
 			e.Str("vmname", r.Proxmox.VMName)

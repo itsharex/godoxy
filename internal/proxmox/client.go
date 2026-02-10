@@ -125,10 +125,10 @@ func (c *Client) UpdateResources(ctx context.Context) error {
 // GetResource gets a resource by kind and id.
 // kind: lxc or qemu
 // id: <vmid>
-func (c *Client) GetResource(kind string, id int) (*VMResource, error) {
+func (c *Client) GetResource(kind string, id uint64) (*VMResource, error) {
 	c.resourcesMu.RLock()
 	defer c.resourcesMu.RUnlock()
-	resource, ok := c.resources[kind+"/"+strconv.Itoa(id)]
+	resource, ok := c.resources[kind+"/"+strconv.FormatUint(id, 10)]
 	if !ok {
 		return nil, ErrResourceNotFound
 	}

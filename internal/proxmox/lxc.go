@@ -41,7 +41,7 @@ const (
 	proxmoxTaskCheckInterval = 300 * time.Millisecond
 )
 
-func (n *Node) LXCAction(ctx context.Context, vmid int, action LXCAction) error {
+func (n *Node) LXCAction(ctx context.Context, vmid uint64, action LXCAction) error {
 	var upid proxmox.UPID
 	if err := n.client.Post(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/status/%s", n.name, vmid, action), nil, &upid); err != nil {
 		return err
@@ -82,7 +82,7 @@ func (n *Node) LXCAction(ctx context.Context, vmid int, action LXCAction) error 
 	}
 }
 
-func (n *Node) LXCName(ctx context.Context, vmid int) (string, error) {
+func (n *Node) LXCName(ctx context.Context, vmid uint64) (string, error) {
 	var name nameOnly
 	if err := n.client.Get(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/status/current", n.name, vmid), &name); err != nil {
 		return "", err
@@ -90,7 +90,7 @@ func (n *Node) LXCName(ctx context.Context, vmid int) (string, error) {
 	return name.Name, nil
 }
 
-func (n *Node) LXCStatus(ctx context.Context, vmid int) (LXCStatus, error) {
+func (n *Node) LXCStatus(ctx context.Context, vmid uint64) (LXCStatus, error) {
 	var status statusOnly
 	if err := n.client.Get(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/status/current", n.name, vmid), &status); err != nil {
 		return "", err
@@ -98,17 +98,17 @@ func (n *Node) LXCStatus(ctx context.Context, vmid int) (LXCStatus, error) {
 	return status.Status, nil
 }
 
-func (n *Node) LXCIsRunning(ctx context.Context, vmid int) (bool, error) {
+func (n *Node) LXCIsRunning(ctx context.Context, vmid uint64) (bool, error) {
 	status, err := n.LXCStatus(ctx, vmid)
 	return status == LXCStatusRunning, err
 }
 
-func (n *Node) LXCIsStopped(ctx context.Context, vmid int) (bool, error) {
+func (n *Node) LXCIsStopped(ctx context.Context, vmid uint64) (bool, error) {
 	status, err := n.LXCStatus(ctx, vmid)
 	return status == LXCStatusStopped, err
 }
 
-func (n *Node) LXCSetShutdownTimeout(ctx context.Context, vmid int, timeout time.Duration) error {
+func (n *Node) LXCSetShutdownTimeout(ctx context.Context, vmid uint64, timeout time.Duration) error {
 	return n.client.Put(ctx, fmt.Sprintf("/nodes/%s/lxc/%d/config", n.name, vmid), map[string]interface{}{
 		"startup": fmt.Sprintf("down=%.0f", timeout.Seconds()),
 	}, nil)

@@ -45,7 +45,7 @@ type (
 	} // @name IdlewatcherDockerConfig
 	ProxmoxConfig struct {
 		Node string `json:"node" validate:"required"`
-		VMID int    `json:"vmid" validate:"required"`
+		VMID uint64 `json:"vmid" validate:"required"`
 	} // @name IdlewatcherProxmoxNodeConfig
 )
 
@@ -69,14 +69,14 @@ func (c *IdlewatcherConfig) Key() string {
 	if c.Docker != nil {
 		return c.Docker.ContainerID
 	}
-	return c.Proxmox.Node + ":" + strconv.Itoa(c.Proxmox.VMID)
+	return c.Proxmox.Node + ":" + strconv.FormatUint(c.Proxmox.VMID, 10)
 }
 
 func (c *IdlewatcherConfig) ContainerName() string {
 	if c.Docker != nil {
 		return c.Docker.ContainerName
 	}
-	return "lxc-" + strconv.Itoa(c.Proxmox.VMID)
+	return "lxc-" + strconv.FormatUint(c.Proxmox.VMID, 10)
 }
 
 func (c *IdlewatcherConfig) Validate() error {

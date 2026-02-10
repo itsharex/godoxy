@@ -11,10 +11,7 @@ import (
 	"github.com/yusing/goutils/http/websocket"
 )
 
-type StatsRequest struct {
-	Node string `uri:"node" binding:"required"`
-	VMID int    `uri:"vmid" binding:"required"`
-}
+type StatsRequest ActionRequest
 
 // @x-id			"nodeStats"
 // @BasePath	/api/v1

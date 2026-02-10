@@ -12,7 +12,7 @@ import (
 
 type NodeConfig struct {
 	Node     string   `json:"node"`
-	VMID     *int     `json:"vmid"` // unset: auto discover; explicit 0: node-level route; >0: lxc/qemu resource route
+	VMID     *uint64  `json:"vmid"` // unset: auto discover; explicit 0: node-level route; >0: lxc/qemu resource route
 	VMName   string   `json:"vmname,omitempty"`
 	Services []string `json:"services,omitempty" aliases:"service"`
 	Files    []string `json:"files,omitempty" aliases:"file"`

@@ -132,7 +132,7 @@ func (c *IdlewatcherConfig) validateStopMethod() error {
 
 func (c *IdlewatcherConfig) validateStopSignal() error {
 	switch c.StopSignal {
-	case "", "SIGINT", "SIGTERM", "SIGQUIT", "SIGHUP", "INT", "TERM", "QUIT", "HUP":
+	case "", "SIGINT", "SIGTERM", "SIGKILL", "SIGQUIT", "SIGHUP", "INT", "TERM", "KILL", "QUIT", "HUP":
 		return nil
 	default:
 		return gperr.PrependSubject(ErrInvalidStopSignal, string(c.StopSignal))

@@ -3,8 +3,9 @@ FROM golang:1.26.0-alpine AS deps
 HEALTHCHECK NONE
 
 # package version does not matter
+# libgcc and libstdc++ are needed for bun
 # trunk-ignore(hadolint/DL3018)
-RUN apk add --no-cache tzdata make libcap-setcap
+RUN apk add --no-cache tzdata make libcap-setcap libgcc libstdc++
 
 ENV GOPATH=/root/go
 ENV GOCACHE=/root/.cache/go-build
@@ -16,6 +17,10 @@ COPY internal/go-oidc/go.mod internal/go-oidc/go.sum ./internal/go-oidc/
 COPY internal/gopsutil/go.mod internal/gopsutil/go.sum ./internal/gopsutil/
 COPY internal/go-proxmox/go.mod internal/go-proxmox/go.sum ./internal/go-proxmox/
 COPY go.mod go.sum ./
+
+# for minify-js
+COPY --from=oven/bun:1.3.9-alpine /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.3.9-alpine /usr/local/bin/bunx /usr/local/bin/bunx
 
 # remove godoxy stuff from go.mod first
 RUN --mount=type=cache,target=/root/.cache/go-build \

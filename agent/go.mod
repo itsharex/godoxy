@@ -1,6 +1,6 @@
 module github.com/yusing/godoxy/agent
 
-go 1.25.7
+go 1.26.0
 
 exclude (
 	github.com/moby/moby/api v1.53.0 // allow older daemon versions
@@ -90,7 +90,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.69.0 // indirect
 	github.com/yusing/ds v0.4.1 // indirect
-	github.com/yusing/gointernals v0.1.18 // indirect
+	github.com/yusing/gointernals v0.2.0 // indirect
 	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260209045559-9ed4555714e3 // indirect
 	github.com/yusing/goutils/http/websocket v0.0.0-20260209045559-9ed4555714e3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect

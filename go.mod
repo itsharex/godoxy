@@ -1,6 +1,6 @@
 module github.com/yusing/godoxy
 
-go 1.25.7
+go 1.26.0
 
 exclude (
 	github.com/moby/moby/api v1.53.0 // allow older daemon versions
@@ -59,7 +59,7 @@ require (
 	github.com/yusing/ds v0.4.1 // data structures and algorithms
 	github.com/yusing/godoxy/agent v0.0.0-20260210085741-a0d0ad0958b0
 	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260210085741-a0d0ad0958b0
-	github.com/yusing/gointernals v0.1.18
+	github.com/yusing/gointernals v0.2.0
 	github.com/yusing/goutils v0.7.0
 	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260209045559-9ed4555714e3
 	github.com/yusing/goutils/http/websocket v0.0.0-20260209045559-9ed4555714e3

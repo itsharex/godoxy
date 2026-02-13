@@ -126,6 +126,7 @@ func (r *ReveseProxyRoute) ReverseProxy() *reverseproxy.ReverseProxy {
 // Start implements task.TaskStarter.
 func (r *ReveseProxyRoute) Start(parent task.Parent) error {
 	r.task = parent.Subtask("http."+r.Name(), false)
+	r.task.SetValue(monitor.DisplayNameKey{}, r.DisplayName())
 
 	switch {
 	case r.UseIdleWatcher():

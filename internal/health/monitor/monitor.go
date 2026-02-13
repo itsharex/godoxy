@@ -21,6 +21,8 @@ import (
 )
 
 type (
+	DisplayNameKey struct{}
+
 	HealthCheckFunc func(url *url.URL) (result types.HealthCheckResult, err error)
 	monitor         struct {
 		service string
@@ -85,8 +87,12 @@ func (mon *monitor) Start(parent task.Parent) error {
 		return ErrNegativeInterval
 	}
 
-	mon.service = parent.Name()
 	mon.task = parent.Subtask("health_monitor", true)
+
+	mon.service = parent.Name()
+	if displayName, ok := parent.GetValue(DisplayNameKey{}).(string); ok {
+		mon.service = displayName
+	}
 
 	go func() {
 		logger := log.With().Str("name", mon.service).Logger()

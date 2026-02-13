@@ -47,6 +47,7 @@ func (r *StreamRoute) Start(parent task.Parent) error {
 	r.stream = stream
 
 	r.task = parent.Subtask("stream."+r.Name(), !r.ShouldExclude())
+	r.task.SetValue(monitor.DisplayNameKey{}, r.DisplayName())
 
 	switch {
 	case r.UseIdleWatcher():

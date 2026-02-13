@@ -80,6 +80,7 @@ func NewFileServer(base *Route) (*FileServer, error) {
 // Start implements task.TaskStarter.
 func (s *FileServer) Start(parent task.Parent) error {
 	s.task = parent.Subtask("fileserver."+s.Name(), false)
+	s.task.SetValue(monitor.DisplayNameKey{}, s.DisplayName())
 
 	pathPatterns := s.PathPatterns
 	switch {

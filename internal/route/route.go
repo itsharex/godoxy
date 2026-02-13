@@ -514,6 +514,7 @@ func (r *Route) start(parent task.Parent) error {
 		}
 
 		r.task = parent.Subtask("excluded."+r.Name(), false)
+		r.task.SetValue(monitor.DisplayNameKey{}, r.DisplayName())
 		ep.ExcludedRoutes().Add(r.impl)
 		r.task.OnCancel("remove_route_from_excluded", func() {
 			ep.ExcludedRoutes().Del(r.impl)

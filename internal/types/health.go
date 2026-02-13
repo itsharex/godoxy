@@ -85,8 +85,6 @@ type (
 		HealthInfoWithoutDetail
 		Detail string `json:"detail"`
 	} // @name HealthInfo
-
-	HealthMap = map[string]HealthStatusString // @name	HealthMap
 )
 
 const (

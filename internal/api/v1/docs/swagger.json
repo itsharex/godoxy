@@ -855,7 +855,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/github_com_yusing_goutils_events.Event"
+                "$ref": "#/definitions/Event"
               }
             }
           },
@@ -1210,10 +1210,7 @@
           "200": {
             "description": "Health info by route name",
             "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "$ref": "#/definitions/HealthStatusString"
-              }
+              "$ref": "#/definitions/HealthMap"
             }
           },
           "403": {
@@ -3827,6 +3824,42 @@
       "x-nullable": false,
       "x-omitempty": false
     },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "category": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "data": {
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "level": {
+          "$ref": "#/definitions/events.Level",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "timestamp": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        },
+        "uuid": {
+          "type": "string",
+          "x-nullable": false,
+          "x-omitempty": false
+        }
+      },
+      "x-nullable": false,
+      "x-omitempty": false
+    },
     "FileType": {
       "type": "string",
       "enum": [
@@ -3996,7 +4029,6 @@
       "type": "object",
       "properties": {
         "latency": {
-          "description": "latency in microseconds",
           "type": "number",
           "x-nullable": false,
           "x-omitempty": false
@@ -4015,7 +4047,6 @@
           "x-omitempty": false
         },
         "uptime": {
-          "description": "uptime in milliseconds",
           "type": "number",
           "x-nullable": false,
           "x-omitempty": false
@@ -4084,6 +4115,14 @@
           "x-nullable": false,
           "x-omitempty": false
         }
+      },
+      "x-nullable": false,
+      "x-omitempty": false
+    },
+    "HealthMap": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/HealthInfoWithoutDetail"
       },
       "x-nullable": false,
       "x-omitempty": false
@@ -6715,37 +6754,6 @@
         "LevelWarn",
         "LevelError"
       ],
-      "x-nullable": false,
-      "x-omitempty": false
-    },
-    "github_com_yusing_goutils_events.Event": {
-      "type": "object",
-      "properties": {
-        "action": {
-          "type": "string",
-          "x-nullable": false,
-          "x-omitempty": false
-        },
-        "category": {
-          "type": "string",
-          "x-nullable": false,
-          "x-omitempty": false
-        },
-        "data": {
-          "x-nullable": false,
-          "x-omitempty": false
-        },
-        "level": {
-          "$ref": "#/definitions/events.Level",
-          "x-nullable": false,
-          "x-omitempty": false
-        },
-        "timestamp": {
-          "type": "string",
-          "x-nullable": false,
-          "x-omitempty": false
-        }
-      },
       "x-nullable": false,
       "x-omitempty": false
     },

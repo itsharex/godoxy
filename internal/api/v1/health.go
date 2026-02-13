@@ -6,10 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	entrypoint "github.com/yusing/godoxy/internal/entrypoint/types"
+	"github.com/yusing/godoxy/internal/types"
 	"github.com/yusing/goutils/apitypes"
 	"github.com/yusing/goutils/http/httpheaders"
 	"github.com/yusing/goutils/http/websocket"
 )
+
+type HealthMap = map[string]types.HealthInfoWithoutDetail // @name HealthMap
 
 // @x-id				"health"
 // @BasePath		/api/v1
@@ -18,7 +21,7 @@ import (
 // @Tags			v1,websocket
 // @Accept			json
 // @Produce		json
-// @Success		200	{object}	map[string]types.HealthStatusString "Health info by route name"
+// @Success		200	{object}	HealthMap "Health info by route name"
 // @Failure		403	{object}	apitypes.ErrorResponse
 // @Failure		500	{object}	apitypes.ErrorResponse
 // @Router			/health [get]
@@ -30,9 +33,9 @@ func Health(c *gin.Context) {
 	}
 	if httpheaders.IsWebsocket(c.Request.Header) {
 		websocket.PeriodicWrite(c, 1*time.Second, func() (any, error) {
-			return ep.GetHealthInfoSimple(), nil
+			return ep.GetHealthInfoWithoutDetail(), nil
 		})
 	} else {
-		c.JSON(http.StatusOK, ep.GetHealthInfoSimple())
+		c.JSON(http.StatusOK, ep.GetHealthInfoWithoutDetail())
 	}
 }

@@ -295,6 +295,20 @@ definitions:
       message:
         type: string
     type: object
+  Event:
+    properties:
+      action:
+        type: string
+      category:
+        type: string
+      data: {}
+      level:
+        $ref: '#/definitions/events.Level'
+      timestamp:
+        type: string
+      uuid:
+        type: string
+    type: object
   FileType:
     enum:
     - config
@@ -375,7 +389,6 @@ definitions:
   HealthInfoWithoutDetail:
     properties:
       latency:
-        description: latency in microseconds
         type: number
       status:
         enum:
@@ -387,7 +400,6 @@ definitions:
         - unknown
         type: string
       uptime:
-        description: uptime in milliseconds
         type: number
     type: object
   HealthJSON:
@@ -418,6 +430,10 @@ definitions:
         type: number
       url:
         type: string
+    type: object
+  HealthMap:
+    additionalProperties:
+      $ref: '#/definitions/HealthInfoWithoutDetail'
     type: object
   HealthStatusString:
     enum:
@@ -1755,18 +1771,6 @@ definitions:
     - LevelInfo
     - LevelWarn
     - LevelError
-  github_com_yusing_goutils_events.Event:
-    properties:
-      action:
-        type: string
-      category:
-        type: string
-      data: {}
-      level:
-        $ref: '#/definitions/events.Level'
-      timestamp:
-        type: string
-    type: object
   icons.Source:
     enum:
     - https://
@@ -1828,11 +1832,11 @@ definitions:
         type: string
       kernel_version:
         type: string
+      load_avg_15m:
+        type: string
       load_avg_1m:
         type: string
       load_avg_5m:
-        type: string
-      load_avg_15m:
         type: string
       mem_pct:
         type: string
@@ -2484,7 +2488,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_yusing_goutils_events.Event'
+              $ref: '#/definitions/Event'
             type: array
         "403":
           description: 'Forbidden: unauthorized'
@@ -2721,9 +2725,7 @@ paths:
         "200":
           description: Health info by route name
           schema:
-            additionalProperties:
-              $ref: '#/definitions/HealthStatusString'
-            type: object
+            $ref: '#/definitions/HealthMap'
         "403":
           description: Forbidden
           schema:

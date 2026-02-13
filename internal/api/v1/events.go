@@ -35,7 +35,7 @@ func Events(c *gin.Context) {
 	}
 	defer manager.Close()
 
-	writer := manager.NewWriter(websocket.BinaryMessage)
+	writer := manager.NewWriter(websocket.TextMessage)
 	err = events.Global.ListenJSON(c.Request.Context(), writer)
 	if err != nil && !errors.Is(err, context.Canceled) {
 		c.Error(apitypes.InternalServerError(err, "failed to listen to events"))

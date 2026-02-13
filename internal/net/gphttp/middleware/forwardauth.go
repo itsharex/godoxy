@@ -104,6 +104,20 @@ func (m *forwardAuthMiddleware) before(w http.ResponseWriter, r *http.Request) (
 		httpheaders.CopyHeader(w.Header(), resp.Header)
 		httpheaders.RemoveHopByHopHeaders(w.Header())
 
+		isGet := r.Method == http.MethodGet
+		isWS := httpheaders.IsWebsocket(r.Header)
+		if !isGet || isWS {
+			reqType := r.Method
+			if isWS {
+				reqType = "WebSocket"
+			}
+			ForwardAuth.LogWarn(r).Msgf(
+				"[ForwardAuth] %s request rejected by auth upstream (HTTP %d).\nConsider adding bypass rule for this path if needed",
+				reqType,
+				resp.StatusCode,
+			)
+		}
+
 		loc, err := resp.Location()
 		if err != nil {
 			if !errors.Is(err, http.ErrNoLocation) {

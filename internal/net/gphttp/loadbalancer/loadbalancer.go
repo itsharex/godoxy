@@ -48,7 +48,7 @@ const maxWeight int = 100
 func New(cfg *types.LoadBalancerConfig) *LoadBalancer {
 	lb := &LoadBalancer{
 		LoadBalancerConfig: cfg,
-		pool:               pool.New[types.LoadBalancerServer]("loadbalancer." + cfg.Link),
+		pool:               pool.New[types.LoadBalancerServer]("loadbalancer."+cfg.Link, "loadbalancers"),
 		l:                  log.With().Str("name", cfg.Link).Logger(),
 	}
 	lb.UpdateConfigIfNeeded(cfg)

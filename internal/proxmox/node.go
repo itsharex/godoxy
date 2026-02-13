@@ -42,7 +42,7 @@ func (n *NodeConfig) Validate() error {
 	return errs.Error()
 }
 
-var Nodes = pool.New[*Node]("proxmox_nodes")
+var Nodes = pool.New[*Node]("proxmox_nodes", "proxmox_node")
 
 func NewNode(client *Client, name, id string) *Node {
 	return &Node{

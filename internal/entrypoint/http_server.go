@@ -80,7 +80,7 @@ func (srv *httpServer) Listen(addr string, proto HTTPProto) error {
 	}
 	srv.stopFunc = task.FinishAndWait
 	srv.addr = addr
-	srv.routes = pool.New[types.HTTPRoute](fmt.Sprintf("[%s] %s", proto, addr))
+	srv.routes = pool.New[types.HTTPRoute](fmt.Sprintf("[%s] %s", proto, addr), "http_routes")
 	srv.routes.DisableLog(srv.ep.httpPoolDisableLog.Load())
 	return nil
 }

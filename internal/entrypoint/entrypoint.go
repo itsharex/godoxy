@@ -66,8 +66,8 @@ func NewEntrypoint(parent task.Parent, cfg *Config) *Entrypoint {
 		cfg:              cfg,
 		findRouteFunc:    findRouteAnyDomain,
 		shortLinkMatcher: newShortLinkMatcher(),
-		streamRoutes:     pool.New[types.StreamRoute]("stream_routes"),
-		excludedRoutes:   pool.New[types.Route]("excluded_routes"),
+		streamRoutes:     pool.New[types.StreamRoute]("stream_routes", "stream_routes"),
+		excludedRoutes:   pool.New[types.Route]("excluded_routes", "excluded_routes"),
 		servers:          xsync.NewMap[string, *httpServer](),
 	}
 	return ep

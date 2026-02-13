@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/yusing/godoxy/internal/auth"
+	"github.com/yusing/goutils/http/httpheaders"
 )
 
 type oidcMiddleware struct {
@@ -104,7 +105,7 @@ func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proce
 
 	if r.URL.Path == auth.OIDCLogoutPath {
 		amw.auth.LogoutHandler(w, r)
-		return true
+		return false
 	}
 
 	err := amw.auth.CheckToken(r)
@@ -112,7 +113,19 @@ func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proce
 		return true
 	}
 
+	isGet := r.Method == http.MethodGet
+	isWS := httpheaders.IsWebsocket(r.Header)
 	switch {
+	case r.Method == http.MethodHead:
+		w.WriteHeader(http.StatusOK)
+	case !isGet, isWS:
+		http.Error(w, err.Error(), http.StatusForbidden)
+		reqType := r.Method
+		if isWS {
+			reqType = "WebSocket"
+		}
+		OIDC.LogWarn(r).Msgf("[OIDC] %s request blocked.\nConsider adding bypass rule for this path if needed", reqType)
+		return false
 	case errors.Is(err, auth.ErrMissingOAuthToken):
 		amw.auth.HandleAuth(w, r)
 	default:

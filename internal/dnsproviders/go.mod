@@ -65,8 +65,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/nrdcg/goacmedns v0.2.0 // indirect
 	github.com/nrdcg/goinwx v0.12.0 // indirect
-	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.0 // indirect
-	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.0 // indirect
+	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.1 // indirect
+	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.1 // indirect
 	github.com/nrdcg/porkbun v0.4.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
@@ -98,9 +98,9 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.265.0 // indirect
+	google.golang.org/api v0.266.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

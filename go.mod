@@ -30,7 +30,7 @@ require (
 	github.com/gorilla/websocket v1.5.3 // websocket for API and agent
 	github.com/gotify/server/v2 v2.8.0 // reference the Message struct for json response
 	github.com/lithammer/fuzzysearch v1.1.8 // fuzzy search for searching icons and filtering metrics
-	github.com/pires/go-proxyproto v0.10.0 // proxy protocol support
+	github.com/pires/go-proxyproto v0.11.0 // proxy protocol support
 	github.com/puzpuzpuz/xsync/v4 v4.4.0 // lock free map for concurrent operations
 	github.com/rs/zerolog v1.34.0 // logging
 	github.com/vincent-petithory/dataurl v1.0.0 // data url for fav icon
@@ -57,13 +57,13 @@ require (
 	github.com/stretchr/testify v1.11.1 // testing framework
 	github.com/valyala/fasthttp v1.69.0 // fast http for health check
 	github.com/yusing/ds v0.4.1 // data structures and algorithms
-	github.com/yusing/godoxy/agent v0.0.0-20260210085741-a0d0ad0958b0
-	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260210085741-a0d0ad0958b0
+	github.com/yusing/godoxy/agent v0.0.0-20260211033321-22f03488e998
+	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260211033321-22f03488e998
 	github.com/yusing/gointernals v0.2.0
 	github.com/yusing/goutils v0.7.0
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260209045559-9ed4555714e3
-	github.com/yusing/goutils/http/websocket v0.0.0-20260209045559-9ed4555714e3
-	github.com/yusing/goutils/server v0.0.0-20260209045559-9ed4555714e3
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260211095624-f5a276d5c58b
+	github.com/yusing/goutils/http/websocket v0.0.0-20260211095624-f5a276d5c58b
+	github.com/yusing/goutils/server v0.0.0-20260211095624-f5a276d5c58b
 )
 
 require (
@@ -141,9 +141,9 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.265.0 // indirect
+	google.golang.org/api v0.266.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/grpc v1.78.0 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -175,10 +175,10 @@ require (
 	github.com/linode/linodego v1.65.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
 	github.com/nrdcg/goinwx v0.12.0 // indirect
-	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.0 // indirect
-	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.0 // indirect
+	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.1 // indirect
+	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
-	github.com/pion/dtls/v3 v3.0.10 // indirect
+	github.com/pion/dtls/v3 v3.1.2 // indirect
 	github.com/pion/logging v0.2.4 // indirect
 	github.com/pion/transport/v4 v4.0.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect

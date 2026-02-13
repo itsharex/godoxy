@@ -23,7 +23,7 @@ require (
 	github.com/bytedance/sonic v1.15.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/pion/dtls/v3 v3.0.10
+	github.com/pion/dtls/v3 v3.1.2
 	github.com/pion/transport/v3 v3.1.1
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
@@ -91,8 +91,8 @@ require (
 	github.com/valyala/fasthttp v1.69.0 // indirect
 	github.com/yusing/ds v0.4.1 // indirect
 	github.com/yusing/gointernals v0.2.0 // indirect
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260209045559-9ed4555714e3 // indirect
-	github.com/yusing/goutils/http/websocket v0.0.0-20260209045559-9ed4555714e3 // indirect
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260211095624-f5a276d5c58b // indirect
+	github.com/yusing/goutils/http/websocket v0.0.0-20260211095624-f5a276d5c58b // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0 // indirect

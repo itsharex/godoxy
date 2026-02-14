@@ -7,6 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/rs/zerolog/log"
 	"github.com/yusing/godoxy/internal/auth"
 	"github.com/yusing/goutils/http/httpheaders"
 )
@@ -28,7 +29,7 @@ var OIDC = NewMiddleware[oidcMiddleware]()
 
 func (amw *oidcMiddleware) finalize() error {
 	if !auth.IsOIDCEnabled() {
-		return errors.New("OIDC not enabled but OIDC middleware is used")
+		log.Error().Msg("OIDC not enabled but OIDC middleware is used")
 	}
 	return nil
 }
@@ -97,6 +98,10 @@ func (amw *oidcMiddleware) initSlow() error {
 }
 
 func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proceed bool) {
+	if !auth.IsOIDCEnabled() {
+		return true
+	}
+
 	if err := amw.init(); err != nil {
 		// no need to log here, main OIDC should've already failed and logged
 		http.Error(w, err.Error(), http.StatusInternalServerError)

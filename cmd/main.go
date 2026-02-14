@@ -61,8 +61,7 @@ func main() {
 
 	err := config.Load()
 	if err != nil {
-		var criticalErr config.CriticalError
-		if errors.As(err, &criticalErr) {
+		if criticalErr, ok := errors.AsType[config.CriticalError](err); ok {
 			log.Fatal().Err(criticalErr).Msg("critical error in config")
 		}
 		log.Warn().Err(err).Msg("errors in config")

@@ -64,10 +64,9 @@ func Load() error {
 	initErr := state.InitFromFile(common.ConfigPath)
 	if initErr != nil {
 		// if error is critical, notify and return it without starting providers
-		var criticalErr CriticalError
-		if errors.As(initErr, &criticalErr) {
+		if criticalErr, ok := errors.AsType[CriticalError](initErr); ok {
 			logNotifyError("init", criticalErr.err)
-			return criticalErr.err
+			return criticalErr
 		}
 	}
 

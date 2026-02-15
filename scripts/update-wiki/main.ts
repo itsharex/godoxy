@@ -1,6 +1,6 @@
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { Glob } from "bun";
-import { mkdir, readdir, readFile, rm, writeFile } from "fs/promises";
-import path from "path";
 
 type ImplDoc = {
   /** Directory path relative to this repo, e.g. "internal/health/check" */
@@ -18,7 +18,11 @@ type ImplDoc = {
 const START_MARKER = "// GENERATED-IMPL-SIDEBAR-START";
 const END_MARKER = "// GENERATED-IMPL-SIDEBAR-END";
 
-const skipSubmodules = ["internal/go-oidc/", "internal/gopsutil/", "internal/go-proxmox/"];
+const skipSubmodules = [
+  "internal/go-oidc/",
+  "internal/gopsutil/",
+  "internal/go-proxmox/",
+];
 
 function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -72,7 +76,7 @@ function isExternalOrAbsoluteUrl(url: string) {
 function isRepoSourceFilePath(filePath: string) {
   // Conservative allow-list: avoid rewriting .md (non-README) which may be VitePress docs.
   return /\.(go|ts|tsx|js|jsx|py|sh|yml|yaml|json|toml|env|css|html|txt)$/i.test(
-    filePath
+    filePath,
   );
 }
 
@@ -88,7 +92,7 @@ function parseFileLineSuffix(urlNoFragment: string): {
 
 function rewriteMarkdownLinksOutsideFences(
   md: string,
-  rewriteInline: (url: string) => string
+  rewriteInline: (url: string) => string,
 ) {
   const lines = md.split("\n");
   let inFence = false;
@@ -108,7 +112,7 @@ function rewriteMarkdownLinksOutsideFences(
       (_full, urlRaw: string, maybeTitle: string | undefined) => {
         const rewritten = rewriteInline(urlRaw);
         return `](${rewritten}${maybeTitle ?? ""})`;
-      }
+      },
     );
   }
 
@@ -138,17 +142,30 @@ function rewriteImplMarkdown(params: {
 
     // 1) Directory links like "common" or "common/" that have a README
     const dirPathNormalized = urlNoFragment.replace(/\/+$/, "");
+    let rewritten: string | undefined;
+    // First try exact match
     if (dirPathToDocRoute.has(dirPathNormalized)) {
-      const rewritten = `${dirPathToDocRoute.get(
-        dirPathNormalized
-      )!}${fragment}`;
+      rewritten = `${dirPathToDocRoute.get(dirPathNormalized)}${fragment}`;
+    } else {
+      // Fallback: check parent directories for a README
+      // This handles paths like "internal/watcher/events" where only the parent has a README
+      let parentPath = dirPathNormalized;
+      while (parentPath.includes("/")) {
+        parentPath = parentPath.slice(0, parentPath.lastIndexOf("/"));
+        if (dirPathToDocRoute.has(parentPath)) {
+          rewritten = `${dirPathToDocRoute.get(parentPath)}${fragment}`;
+          break;
+        }
+      }
+    }
+    if (rewritten) {
       return angleWrapped === urlRaw ? rewritten : `<${rewritten}>`;
     }
 
     // 2) Intra-repo README links -> VitePress impl routes
     if (/(^|\/)README\.md$/.test(urlNoFragment)) {
       const targetReadmeRel = path.posix.normalize(
-        path.posix.join(pkgPath, urlNoFragment)
+        path.posix.join(pkgPath, urlNoFragment),
       );
       const route = readmeRelToDocRoute.get(targetReadmeRel);
       if (route) {
@@ -163,10 +180,11 @@ function rewriteImplMarkdown(params: {
       const { filePath, line } = parseFileLineSuffix(urlNoFragment);
       if (isRepoSourceFilePath(filePath)) {
         const repoRel = path.posix.normalize(
-          path.posix.join(pkgPath, filePath)
+          path.posix.join(pkgPath, filePath),
         );
-        const githubUrl = `${repoUrl}/blob/main/${repoRel}${line ? `#L${line}` : ""
-          }`;
+        const githubUrl = `${repoUrl}/blob/main/${repoRel}${
+          line ? `#L${line}` : ""
+        }`;
         const rewritten = `${githubUrl}${fragment}`;
         return angleWrapped === urlRaw ? rewritten : `<${rewritten}>`;
       }
@@ -238,7 +256,7 @@ async function writeImplDocCopy(params: {
 
 async function syncImplDocs(
   repoRootAbs: string,
-  wikiRootAbs: string
+  wikiRootAbs: string,
 ): Promise<ImplDoc[]> {
   const implDirAbs = path.join(wikiRootAbs, "src", "impl");
   await mkdir(implDirAbs, { recursive: true });
@@ -249,7 +267,7 @@ async function syncImplDocs(
   expectedFileNames.add("introduction.md");
 
   const repoUrl = normalizeRepoUrl(
-    Bun.env.REPO_URL ?? "https://github.com/yusing/godoxy"
+    Bun.env.REPO_URL ?? "https://github.com/yusing/godoxy",
   );
 
   // Precompute mapping from repo-relative README path -> VitePress route.
@@ -336,21 +354,21 @@ async function updateVitepressSidebar(wikiRootAbs: string, docs: ImplDoc[]) {
   // We keep indentation based on the marker line.
   const markerRe = new RegExp(
     `(^[\\t ]*)${escapeRegex(START_MARKER)}[\\s\\S]*?\\n\\1${escapeRegex(
-      END_MARKER
+      END_MARKER,
     )}`,
-    "m"
+    "m",
   );
 
   const m = original.match(markerRe);
   if (!m) {
     throw new Error(
-      `sidebar markers not found in ${configPathAbs}. Expected lines: ${START_MARKER} ... ${END_MARKER}`
+      `sidebar markers not found in ${configPathAbs}. Expected lines: ${START_MARKER} ... ${END_MARKER}`,
     );
   }
   const indent = m[1] ?? "";
   const generated = `${indent}${START_MARKER}\n${renderSidebarItems(
     docs,
-    indent
+    indent,
   )}${indent}${END_MARKER}`;
 
   const updated = original.replace(markerRe, generated);

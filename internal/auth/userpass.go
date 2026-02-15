@@ -137,11 +137,12 @@ func (auth *UserPassAuth) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (auth *UserPassAuth) validatePassword(user, pass string) error {
-	if user != auth.username {
-		return ErrInvalidUsername
-	}
+	// always perform bcrypt comparison to avoid timing attacks
 	if err := bcrypt.CompareHashAndPassword(auth.pwdHash, []byte(pass)); err != nil {
 		return err
+	}
+	if user != auth.username {
+		return ErrInvalidUsername
 	}
 	return nil
 }

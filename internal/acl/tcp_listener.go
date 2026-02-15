@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type TCPListener struct {
@@ -44,6 +46,7 @@ func (s *TCPListener) Accept() (net.Conn, error) {
 	}
 	addr, ok := c.RemoteAddr().(*net.TCPAddr)
 	if !ok {
+		log.Error().Msgf("unexpected remote address type: %T, addr: %s", c.RemoteAddr(), c.RemoteAddr().String())
 		// Not a TCPAddr, drop
 		c.Close()
 		return noConn{}, nil

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type UDPListener struct {
@@ -33,6 +35,7 @@ func (s *UDPListener) ReadFrom(p []byte) (int, net.Addr, error) {
 		}
 		udpAddr, ok := addr.(*net.UDPAddr)
 		if !ok {
+			log.Error().Msgf("unexpected remote address type: %T, addr: %s", addr, addr.String())
 			// Not a UDPAddr, drop
 			continue
 		}

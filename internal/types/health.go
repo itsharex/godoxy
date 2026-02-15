@@ -77,8 +77,8 @@ type (
 
 	HealthInfoWithoutDetail struct {
 		Status  HealthStatus  `json:"status" swaggertype:"string" enums:"healthy,unhealthy,napping,starting,error,unknown"`
-		Uptime  time.Duration `json:"uptime" swaggertype:"number"`  // uptime in milliseconds
-		Latency time.Duration `json:"latency" swaggertype:"number"` // latency in microseconds
+		Uptime  time.Duration `json:"uptime" swaggertype:"number"`
+		Latency time.Duration `json:"latency" swaggertype:"number"`
 	} // @name HealthInfoWithoutDetail
 
 	HealthInfo struct {

@@ -31,7 +31,7 @@ var pinger = &fasthttp.Client{
 	TLSConfig: &tls.Config{
 		InsecureSkipVerify: true,
 	},
-	MaxConnsPerHost:          1,
+	MaxConnsPerHost:          1000,
 	NoDefaultUserAgentHeader: true,
 }
 

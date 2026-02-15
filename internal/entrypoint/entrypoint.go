@@ -145,18 +145,20 @@ func (ep *Entrypoint) SetNotFoundRules(rules rules.Rules) {
 	ep.notFoundHandler = rules.BuildHandler(serveNotFound)
 }
 
-func (ep *Entrypoint) SetAccessLogger(parent task.Parent, cfg *accesslog.RequestLoggerConfig) (err error) {
+func (ep *Entrypoint) SetAccessLogger(parent task.Parent, cfg *accesslog.RequestLoggerConfig) error {
 	if cfg == nil {
 		ep.accessLogger = nil
-		return err
+		return nil
 	}
 
-	ep.accessLogger, err = accesslog.NewAccessLogger(parent, cfg)
+	accessLogger, err := accesslog.NewAccessLogger(parent, cfg)
 	if err != nil {
 		return err
 	}
+
+	ep.accessLogger = accessLogger
 	log.Debug().Msg("entrypoint access logger created")
-	return err
+	return nil
 }
 
 func findRouteAnyDomain(routes HTTPRoutes, host string) types.HTTPRoute {

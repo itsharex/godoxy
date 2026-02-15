@@ -2,6 +2,7 @@ package notif
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -49,7 +50,7 @@ func (base *ProviderBase) Validate() error {
 	}
 	u, err := url.Parse(base.URL)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid url: %w", err)
 	}
 	base.URL = u.String()
 	return nil

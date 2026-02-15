@@ -55,6 +55,7 @@ func (s *UDPListener) WriteTo(p []byte, addr net.Addr) (int, error) {
 		}
 		udpAddr, ok := addr.(*net.UDPAddr)
 		if !ok {
+			log.Error().Msgf("unexpected remote address type: %T, addr: %s", addr, addr.String())
 			// Not a UDPAddr, drop
 			continue
 		}

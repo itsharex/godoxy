@@ -105,12 +105,14 @@ func ValidateWithFieldTags(s any) error {
 				detail = "require " + strconv.Quote(detail)
 			}
 			errs.Add(gperr.PrependSubject(ErrValidationError, e.Namespace()).
-				Withf(detail))
+				Withf("%s", detail))
 		}
 	}
 	return errs.Error()
 }
 
+// dive recursively dives into the nested pointers of the dst.
+// dst value pointer must be valid (satisfies reflect.Value.IsValid()).
 func dive(dst reflect.Value) (v reflect.Value, t reflect.Type) {
 	dstT := dst.Type()
 	for {
@@ -445,7 +447,7 @@ func Convert(src reflect.Value, dst reflect.Value, checkValidateTag bool) error 
 		}
 		obj, ok := src.Interface().(SerializedObject)
 		if !ok {
-			return fmt.Errorf("convert: %w for %s to %s", ErrUnsupportedConversion, dstT, srcT)
+			return fmt.Errorf("convert: %w from %s to %s", ErrUnsupportedConversion, srcT, dstT)
 		}
 		return mapUnmarshalValidate(obj, dst.Addr(), checkValidateTag)
 	case srcKind == reflect.Slice: // slice to slice

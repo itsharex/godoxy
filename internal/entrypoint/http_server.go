@@ -156,7 +156,7 @@ func serveNotFound(w http.ResponseWriter, r *http.Request) {
 	// Then scraper / scanners will know the subdomain is invalid.
 	// With StatusNotFound, they won't know whether it's the path, or the subdomain that is invalid.
 	if served := middleware.ServeStaticErrorPageFile(w, r); !served {
-		log.Error().
+		log.Warn().
 			Str("method", r.Method).
 			Str("url", r.URL.String()).
 			Str("remote", r.RemoteAddr).

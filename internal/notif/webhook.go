@@ -44,13 +44,12 @@ func (webhook *Webhook) Validate() error {
 
 	switch webhook.Template {
 	case "":
-		if webhook.MIMEType == MimeTypeJSON {
+		if webhook.Payload == "" {
+			errs.Adds("invalid payload, expect non-empty")
+		} else if webhook.MIMEType == MimeTypeJSON {
 			if !validateJSONPayload(webhook.Payload) {
 				errs.Adds("invalid payload, expect valid JSON")
 			}
-		}
-		if webhook.Payload == "" {
-			errs.Adds("invalid payload, expect non-empty")
 		}
 	case "discord":
 		webhook.ColorMode = "dec"

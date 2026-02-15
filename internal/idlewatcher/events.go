@@ -45,12 +45,7 @@ func (w *Watcher) newWakeEvent(message string, err error) *WakeEvent {
 }
 
 func (e *WakeEvent) WriteSSE(w io.Writer) error {
-	data, err := sonic.Marshal(e)
-	if err != nil {
-		return err
-	}
-	_, err = fmt.Fprintf(w, "data: %s\n\n", data)
-	return err
+	return writeSSE(w, e)
 }
 
 func (w *Watcher) clearEventHistory() {

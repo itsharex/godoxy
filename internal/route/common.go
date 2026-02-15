@@ -15,6 +15,10 @@ func checkExists(ctx context.Context, r types.Route) error {
 	if r.UseLoadBalance() { // skip checking for load balanced routes
 		return nil
 	}
+	ep := entrypoint.FromCtx(ctx)
+	if ep == nil {
+		return fmt.Errorf("entrypoint not found in context")
+	}
 	var (
 		existing types.Route
 		ok       bool

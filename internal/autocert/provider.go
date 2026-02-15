@@ -246,7 +246,7 @@ func (p *Provider) ObtainCertAll() error {
 	for _, provider := range p.allProviders() {
 		errs.Go(func() error {
 			if err := provider.obtainCertIfNotExists(); err != nil {
-				return fmt.Errorf("failed to obtain cert for %s: %w", provider.GetName(), err)
+				return gperr.PrependSubject(err, provider.GetName())
 			}
 			return nil
 		})

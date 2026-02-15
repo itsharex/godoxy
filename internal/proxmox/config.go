@@ -31,8 +31,10 @@ type Config struct {
 	client *Client
 }
 
-const ResourcePollInterval = 3 * time.Second
-const SessionRefreshInterval = 1 * time.Minute
+const (
+	ResourcePollInterval   = 3 * time.Second
+	SessionRefreshInterval = 1 * time.Minute
+)
 
 // NodeStatsPollInterval controls how often node stats are streamed when streaming is enabled.
 const NodeStatsPollInterval = time.Second
@@ -158,6 +160,7 @@ func (c *Config) refreshSessionLoop(ctx context.Context) {
 				backoff := time.Duration(min(math.Pow(2, float64(numRetries)), 10)) * time.Second
 				ticker.Reset(backoff)
 			} else {
+				numRetries = 0
 				ticker.Reset(SessionRefreshInterval)
 			}
 		}

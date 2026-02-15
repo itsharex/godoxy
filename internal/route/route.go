@@ -682,7 +682,7 @@ func (r *Route) DisplayName() string {
 func (r *Route) MarshalZerologObject(e *zerolog.Event) {
 	e.Str("alias", r.Alias)
 	switch r := r.impl.(type) {
-	case *ReveseProxyRoute:
+	case *ReverseProxyRoute:
 		e.Str("type", "reverse_proxy").
 			Str("scheme", r.Scheme.String()).
 			Str("bind", r.LisURL.Host).
@@ -728,7 +728,7 @@ func (r *Route) PreferOver(other any) bool {
 	switch v := other.(type) {
 	case *Route:
 		or = v
-	case *ReveseProxyRoute:
+	case *ReverseProxyRoute:
 		or = v.Route
 	case *FileServer:
 		or = v.Route

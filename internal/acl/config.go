@@ -135,15 +135,15 @@ func (c *Config) Valid() bool {
 }
 
 func (c *Config) Start(parent task.Parent) error {
+	if c.valErr != nil {
+		return c.valErr
+	}
 	if c.Log != nil {
 		logger, err := accesslog.NewAccessLogger(parent, c.Log)
 		if err != nil {
 			return gperr.New("failed to start access logger").With(err)
 		}
 		c.logger = logger
-	}
-	if c.valErr != nil {
-		return c.valErr
 	}
 
 	if c.needLogOrNotify() {
@@ -308,9 +308,9 @@ func (c *Config) IPAllowed(ip net.IP) bool {
 		return true
 	}
 
-	reason := "deny by default"
+	reason := "denied by default"
 	if c.defaultAllow {
-		reason = "allow by default"
+		reason = "allowed by default"
 	}
 	c.logAndNotify(ipAndStr, c.defaultAllow, reason)
 	c.cacheRecord(ipAndStr, c.defaultAllow, reason)

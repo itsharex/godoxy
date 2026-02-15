@@ -82,6 +82,9 @@ func NewDockerWatcher(dockerCfg types.DockerProviderConfig) DockerWatcher {
 	}
 }
 
+var _ Watcher = (*DockerWatcher)(nil)
+
+// Events implements the Watcher interface.
 func (w DockerWatcher) Events(ctx context.Context) (<-chan Event, <-chan error) {
 	return w.EventsWithOptions(ctx, optionsDefault)
 }
@@ -123,11 +126,11 @@ func (w DockerWatcher) EventsWithOptions(ctx context.Context, options DockerList
 				eventCh <- reloadTrigger
 
 				retry := time.NewTicker(dockerWatcherRetryInterval)
-				defer retry.Stop()
 			outer:
 				for {
 					select {
 					case <-ctx.Done():
+						retry.Stop()
 						return
 					case <-retry.C:
 						if checkConnection(ctx, client) {
@@ -135,6 +138,7 @@ func (w DockerWatcher) EventsWithOptions(ctx context.Context, options DockerList
 						}
 					}
 				}
+				retry.Stop()
 				// connection successful, trigger reload (reload routes)
 				eventCh <- reloadTrigger
 				// reopen event channel

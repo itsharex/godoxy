@@ -23,7 +23,7 @@ import (
 	"github.com/yusing/goutils/version"
 )
 
-type ReveseProxyRoute struct {
+type ReverseProxyRoute struct {
 	*Route
 
 	loadBalancer *loadbalancer.LoadBalancer
@@ -31,11 +31,11 @@ type ReveseProxyRoute struct {
 	rp           *reverseproxy.ReverseProxy
 }
 
-var _ types.ReverseProxyRoute = (*ReveseProxyRoute)(nil)
+var _ types.ReverseProxyRoute = (*ReverseProxyRoute)(nil)
 
 // var globalMux    = http.NewServeMux() // TODO: support regex subdomain matching.
 
-func NewReverseProxyRoute(base *Route) (*ReveseProxyRoute, error) {
+func NewReverseProxyRoute(base *Route) (*ReverseProxyRoute, error) {
 	httpConfig := base.HTTPConfig
 	proxyURL := base.ProxyURL
 
@@ -111,7 +111,7 @@ func NewReverseProxyRoute(base *Route) (*ReveseProxyRoute, error) {
 		}
 	}
 
-	r := &ReveseProxyRoute{
+	r := &ReverseProxyRoute{
 		Route: base,
 		rp:    rp,
 	}
@@ -119,12 +119,12 @@ func NewReverseProxyRoute(base *Route) (*ReveseProxyRoute, error) {
 }
 
 // ReverseProxy implements routes.ReverseProxyRoute.
-func (r *ReveseProxyRoute) ReverseProxy() *reverseproxy.ReverseProxy {
+func (r *ReverseProxyRoute) ReverseProxy() *reverseproxy.ReverseProxy {
 	return r.rp
 }
 
 // Start implements task.TaskStarter.
-func (r *ReveseProxyRoute) Start(parent task.Parent) error {
+func (r *ReverseProxyRoute) Start(parent task.Parent) error {
 	r.task = parent.Subtask("http."+r.Name(), false)
 	r.task.SetValue(monitor.DisplayNameKey{}, r.DisplayName())
 
@@ -160,6 +160,7 @@ func (r *ReveseProxyRoute) Start(parent task.Parent) error {
 
 	if r.HealthMon != nil {
 		if err := r.HealthMon.Start(r.task); err != nil {
+			// TODO: add to event history
 			log.Warn().Err(err).Msg("health monitor error")
 			r.HealthMon = nil
 		}
@@ -186,23 +187,23 @@ func (r *ReveseProxyRoute) Start(parent task.Parent) error {
 	return nil
 }
 
-func (r *ReveseProxyRoute) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *ReverseProxyRoute) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// req.Header.Set("Accept-Encoding", "identity")
 	r.handler.ServeHTTP(w, req)
 }
 
 var lbLock sync.Mutex
 
-func (r *ReveseProxyRoute) addToLoadBalancer(parent task.Parent, ep entrypoint.Entrypoint) error {
+func (r *ReverseProxyRoute) addToLoadBalancer(parent task.Parent, ep entrypoint.Entrypoint) error {
 	var lb *loadbalancer.LoadBalancer
 	cfg := r.LoadBalance
 	lbLock.Lock()
 	defer lbLock.Unlock()
 
 	l, ok := ep.HTTPRoutes().Get(cfg.Link)
-	var linked *ReveseProxyRoute
+	var linked *ReverseProxyRoute
 	if ok {
-		linked = l.(*ReveseProxyRoute) // it must be a reverse proxy route
+		linked = l.(*ReverseProxyRoute) // it must be a reverse proxy route
 		lb = linked.loadBalancer
 		lb.UpdateConfigIfNeeded(cfg)
 		if linked.Homepage.Name == "" {
@@ -211,7 +212,7 @@ func (r *ReveseProxyRoute) addToLoadBalancer(parent task.Parent, ep entrypoint.E
 	} else {
 		lb = loadbalancer.New(cfg)
 		_ = lb.Start(parent) // always return nil
-		linked = &ReveseProxyRoute{
+		linked = &ReverseProxyRoute{
 			Route: &Route{
 				Alias:    cfg.Link,
 				Homepage: r.Homepage,

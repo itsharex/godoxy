@@ -61,6 +61,9 @@ func NewDirectoryWatcher(parent task.Parent, dirPath string) *DirWatcher {
 	return helper
 }
 
+var _ Watcher = (*DirWatcher)(nil)
+
+// Events implements the Watcher interface.
 func (h *DirWatcher) Events(_ context.Context) (<-chan Event, <-chan error) {
 	return h.eventCh, h.errCh
 }
@@ -112,7 +115,7 @@ func (h *DirWatcher) start() {
 			relPath := strings.TrimPrefix(fsEvent.Name, h.dir)
 			relPath = strings.TrimPrefix(relPath, "/")
 
-			if len(relPath) > 0 && relPath[0] == '.' { // hideden file
+			if len(relPath) > 0 && relPath[0] == '.' { // hidden file
 				continue
 			}
 

@@ -99,6 +99,6 @@ func (handler *EventHandler) Update(parent task.Parent, oldRoute *route.Route, n
 
 func (handler *EventHandler) Log() {
 	if err := handler.errs.Error(); err != nil {
-		handler.provider.Logger().Info().Msg(err.Error())
+		handler.provider.Logger().Error().Msg(err.Error())
 	}
 }

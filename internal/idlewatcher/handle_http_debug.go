@@ -33,7 +33,7 @@ func DebugHandler(rw http.ResponseWriter, r *http.Request) {
 		go w.handleWakeEventsSSE(rw, r)
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
-		events := []WakeEventType{
+		eventTypes := []WakeEventType{
 			WakeEventStarting,
 			WakeEventWakingDep,
 			WakeEventDepReady,
@@ -57,8 +57,8 @@ func DebugHandler(rw http.ResponseWriter, r *http.Request) {
 			case <-r.Context().Done():
 				return
 			case <-ticker.C:
-				idx := rand.IntN(len(events))
-				w.sendEvent(events[idx], messages[idx], nil)
+				idx := rand.IntN(len(eventTypes))
+				w.sendEvent(eventTypes[idx], messages[idx], nil)
 			}
 		}
 	default:

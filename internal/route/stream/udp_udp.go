@@ -81,9 +81,9 @@ func (s *UDPUDPStream) ListenAndServe(ctx context.Context, preDial, onRead netty
 		return err
 	}
 	s.listener = l
-	if acl := acl.FromCtx(ctx); acl != nil {
+	if aclCfg := acl.FromCtx(ctx); aclCfg != nil {
 		log.Debug().EmbedObject(s).Msg("wrapping listener with ACL")
-		s.listener = acl.WrapUDP(s.listener)
+		s.listener = aclCfg.WrapUDP(l)
 	}
 	s.preDial = preDial
 	s.onRead = onRead

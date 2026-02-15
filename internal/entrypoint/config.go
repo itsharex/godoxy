@@ -5,11 +5,13 @@ import (
 	"github.com/yusing/godoxy/internal/route/rules"
 )
 
+// Config defines the entrypoint configuration for proxy handling,
+// including proxy protocol support, routing rules, middlewares, and access logging.
 type Config struct {
 	SupportProxyProtocol bool `json:"support_proxy_protocol"`
 	Rules                struct {
 		NotFound rules.Rules `json:"not_found"`
 	} `json:"rules"`
 	Middlewares []map[string]any               `json:"middlewares"`
-	AccessLog   *accesslog.RequestLoggerConfig `json:"access_log" validate:"omitempty"`
+	AccessLog   *accesslog.RequestLoggerConfig `json:"access_log"`
 }

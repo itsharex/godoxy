@@ -140,9 +140,6 @@ func formatIECBytes(b uint64) string {
 	// One decimal, trimming trailing ".0" to keep output compact (e.g. "10GiB").
 	s := fmt.Sprintf("%.1f", val)
 	s = strings.TrimSuffix(s, ".0")
-	if exp == 0 {
-		return s + "B"
-	}
 	return s + prefixes[exp] + "B"
 }
 

@@ -43,7 +43,8 @@ func (ep *Entrypoint) GetHealthInfoSimple() map[string]types.HealthStatus {
 func (ep *Entrypoint) RoutesByProvider() map[string][]types.Route {
 	rts := make(map[string][]types.Route)
 	for r := range ep.IterRoutes {
-		rts[r.ProviderName()] = append(rts[r.ProviderName()], r)
+		providerName := r.ProviderName()
+		rts[providerName] = append(rts[providerName], r)
 	}
 	return rts
 }

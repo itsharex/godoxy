@@ -250,14 +250,13 @@ func (m *Middleware) LogError(req *http.Request) *zerolog.Event {
 		Str("path", req.URL.Path)
 }
 
-func PatchReverseProxy(rp *ReverseProxy, middlewaresMap map[string]OptionsRaw) (err error) {
-	var middlewares []*Middleware
-	middlewares, err = compileMiddlewares(middlewaresMap)
+func PatchReverseProxy(rp *ReverseProxy, middlewaresMap map[string]OptionsRaw) error {
+	middlewares, err := compileMiddlewares(middlewaresMap)
 	if err != nil {
 		return err
 	}
 	patchReverseProxy(rp, middlewares)
-	return err
+	return nil
 }
 
 func patchReverseProxy(rp *ReverseProxy, middlewares []*Middleware) {

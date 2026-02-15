@@ -17,7 +17,7 @@ func initConfigDirWatcher() {
 	configDirWatcher = NewDirectoryWatcher(t, common.ConfigBasePath)
 }
 
-// NewConfigFileWatcher creates a new file watcher for file under common.ConfigBasePath.
+// NewConfigFileWatcher creates a new file watcher for a file under common.ConfigBasePath.
 func NewConfigFileWatcher(filename string) Watcher {
 	configDirWatcherInitOnce.Do(initConfigDirWatcher)
 	return configDirWatcher.Add(filename)

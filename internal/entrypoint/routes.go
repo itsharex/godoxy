@@ -142,4 +142,5 @@ func (ep *Entrypoint) delHTTPRoute(route types.HTTPRoute) {
 			srv.DelRoute(route)
 		}
 	}
+	// TODO: close server if no routes are left
 }

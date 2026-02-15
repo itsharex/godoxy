@@ -95,15 +95,17 @@ func BenchmarkEntrypointReal(b *testing.B) {
 		b.Fatal("server not found")
 	}
 
+	server.ServeHTTP(&w, &req)
+	if w.statusCode != http.StatusOK {
+		b.Fatalf("status code is not 200: %d", w.statusCode)
+	}
+	if string(w.written) != "1" {
+		b.Fatalf("written is not 1: %s", string(w.written))
+	}
+
 	b.ResetTimer()
 	for b.Loop() {
 		server.ServeHTTP(&w, &req)
-		if w.statusCode != http.StatusOK {
-			b.Fatalf("status code is not 200: %d", w.statusCode)
-		}
-		if string(w.written) != "1" {
-			b.Fatalf("written is not 1: %s", string(w.written))
-		}
 	}
 }
 

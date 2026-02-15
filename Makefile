@@ -141,13 +141,12 @@ dev-build: build
 	docker compose -f dev.compose.yml up -t 0 -d app --force-recreate
 
 benchmark:
-	@if [ -z "$(TARGET)" ]; then \
-		docker compose -f dev.compose.yml up -d --force-recreate godoxy traefik caddy nginx; \
-	else \
-		docker compose -f dev.compose.yml up -d --force-recreate $(TARGET); \
-	fi
-	sleep 1
-	@./scripts/benchmark.sh
+	@TARGETS="$(TARGET)"; \
+	if [ -z "$$TARGETS" ]; then TARGETS="godoxy traefik caddy nginx"; fi; \
+	trap 'docker compose -f dev.compose.yml down $$TARGETS' EXIT; \
+	docker compose -f dev.compose.yml up -d --force-recreate $$TARGETS; \
+	sleep 1; \
+	./scripts/benchmark.sh
 
 rapid-crash:
 	docker run --restart=always --name test_crash -p 80 debian:bookworm-slim /bin/cat &&\
@@ -181,8 +180,7 @@ gen-swagger-markdown: gen-swagger
 gen-api-types: gen-swagger
 	# --disable-throw-on-error
 	bunx --bun swagger-typescript-api generate --sort-types --generate-union-enums --axios --add-readonly --route-types \
-		 --responses -o ${WEBUI_DIR}/lib -n api.ts -p internal/api/v1/docs/swagger.json
-	bunx --bun prettier --config ${WEBUI_DIR}/.prettierrc --write ${WEBUI_DIR}/lib/api.ts
+		 --responses -o ${WEBUI_DIR}/src/lib -n api.ts -p internal/api/v1/docs/swagger.json
 
 .PHONY: update-wiki
 update-wiki:

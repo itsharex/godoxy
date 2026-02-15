@@ -1,5 +1,5 @@
 shell := /bin/sh
-export VERSION ?= $(shell git describe --tags --abbrev=0)
+export VERSION ?= $(shell git describe --tags --abbrev=0 2>/dev/null)
 export BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 export BUILD_DATE ?= $(shell date -u +'%Y%m%d-%H%M')
 export GOOS = linux

@@ -14,11 +14,8 @@ data/
 debug/
 
 logs/
-log/
 
 .vscode/settings.json
-
-go.work.sum
 
 !cmd/**/
 !internal/**/
@@ -26,17 +23,11 @@ go.work.sum
 todo.md
 
 .*.swp
-.aider*
 mtrace.json
 .env
 *.env
-.cursorrules
 .cursor/
-.windsurfrules
 test.Dockerfile
-
-node_modules/
-tsconfig.tsbuildinfo
 
 !agent.compose.yml
 !agent/pkg/**
@@ -45,6 +36,8 @@ dev-data/
 RELEASE_NOTES.md
 CLAUDE.md
 .kilocode/**
+
+!.trunk/configs
 
 # minified files
 **/*-min.*

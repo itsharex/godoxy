@@ -15,7 +15,7 @@ import (
 	provider "github.com/yusing/godoxy/internal/route/provider/types"
 	"github.com/yusing/godoxy/internal/types"
 	W "github.com/yusing/godoxy/internal/watcher"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
 	"github.com/yusing/goutils/eventqueue"
 	"github.com/yusing/goutils/task"
@@ -116,9 +116,9 @@ func (p *Provider) Start(parent task.Parent) error {
 
 	err := errs.Wait().Error()
 
-	opts := eventqueue.Options[events.Event]{
+	opts := eventqueue.Options[watcherEvents.Event]{
 		FlushInterval: providerEventFlushInterval,
-		OnFlush: func(events []events.Event) {
+		OnFlush: func(events []watcherEvents.Event) {
 			handler := p.newEventHandler()
 			// routes' lifetime should follow the provider's lifetime
 			handler.Handle(t, events)

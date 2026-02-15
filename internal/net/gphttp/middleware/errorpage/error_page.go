@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/yusing/godoxy/internal/common"
 	"github.com/yusing/godoxy/internal/watcher"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	"github.com/yusing/goutils/fs"
 	"github.com/yusing/goutils/task"
 )
@@ -80,13 +80,13 @@ func watchDir() {
 			}
 			filename := event.ActorName
 			switch event.Action {
-			case events.ActionFileWritten:
+			case watcherEvents.ActionFileWritten:
 				fileContentMap.Delete(filename)
 				loadContent()
-			case events.ActionFileDeleted:
+			case watcherEvents.ActionFileDeleted:
 				fileContentMap.Delete(filename)
 				log.Warn().Msgf("error page resource %s deleted", filename)
-			case events.ActionFileRenamed:
+			case watcherEvents.ActionFileRenamed:
 				log.Warn().Msgf("error page resource %s deleted", filename)
 				fileContentMap.Delete(filename)
 				loadContent()

@@ -11,7 +11,7 @@ import (
 	"github.com/yusing/godoxy/internal/proxmox"
 	"github.com/yusing/godoxy/internal/types"
 	"github.com/yusing/godoxy/internal/watcher"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
 )
 
@@ -101,7 +101,7 @@ func (p *ProxmoxProvider) Watch(ctx context.Context) (<-chan watcher.Event, <-ch
 		defer ticker.Stop()
 
 		event := watcher.Event{
-			Type:      events.EventTypeDocker,
+			Type:      watcherEvents.EventTypeDocker,
 			ActorID:   strconv.FormatUint(p.vmid, 10),
 			ActorName: p.lxcName,
 		}
@@ -119,9 +119,9 @@ func (p *ProxmoxProvider) Watch(ctx context.Context) (<-chan watcher.Event, <-ch
 				if p.running != running {
 					p.running = running
 					if running {
-						event.Action = events.ActionContainerStart
+						event.Action = watcherEvents.ActionContainerStart
 					} else {
-						event.Action = events.ActionContainerStop
+						event.Action = watcherEvents.ActionContainerStop
 					}
 					eventCh <- event
 				}

@@ -9,7 +9,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	"github.com/yusing/goutils/task"
 )
 
@@ -117,18 +117,18 @@ func (h *DirWatcher) start() {
 			}
 
 			msg := Event{
-				Type:      events.EventTypeFile,
+				Type:      watcherEvents.EventTypeFile,
 				ActorName: relPath,
 			}
 			switch {
 			case fsEvent.Has(fsnotify.Write):
-				msg.Action = events.ActionFileWritten
+				msg.Action = watcherEvents.ActionFileWritten
 			case fsEvent.Has(fsnotify.Create):
-				msg.Action = events.ActionFileCreated
+				msg.Action = watcherEvents.ActionFileCreated
 			case fsEvent.Has(fsnotify.Remove):
-				msg.Action = events.ActionFileDeleted
+				msg.Action = watcherEvents.ActionFileDeleted
 			case fsEvent.Has(fsnotify.Rename):
-				msg.Action = events.ActionFileRenamed
+				msg.Action = watcherEvents.ActionFileRenamed
 			default: // ignore other events
 				continue
 			}

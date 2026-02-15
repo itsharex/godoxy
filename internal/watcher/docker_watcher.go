@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/yusing/godoxy/internal/docker"
 	"github.com/yusing/godoxy/internal/types"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 )
 
 type (
@@ -64,8 +64,8 @@ var (
 	dockerWatcherRetryInterval = 3 * time.Second
 
 	reloadTrigger = Event{
-		Type:            events.EventTypeDocker,
-		Action:          events.ActionForceReload,
+		Type:            watcherEvents.EventTypeDocker,
+		Action:          watcherEvents.ActionForceReload,
 		ActorAttributes: map[string]string{},
 		ActorName:       "",
 		ActorID:         "",
@@ -157,12 +157,12 @@ func (w DockerWatcher) parseError(err error) error {
 }
 
 func (w DockerWatcher) handleEvent(event dockerEvents.Message, ch chan<- Event) {
-	action, ok := events.DockerEventMap[event.Action]
+	action, ok := watcherEvents.DockerEventMap[event.Action]
 	if !ok {
 		return
 	}
 	ch <- Event{
-		Type:            events.EventTypeDocker,
+		Type:            watcherEvents.EventTypeDocker,
 		ActorID:         event.Actor.ID,
 		ActorAttributes: event.Actor.Attributes, // labels
 		ActorName:       event.Actor.Attributes["name"],

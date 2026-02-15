@@ -20,7 +20,7 @@ import (
 	idlewatcher "github.com/yusing/godoxy/internal/idlewatcher/types"
 	nettypes "github.com/yusing/godoxy/internal/net/types"
 	"github.com/yusing/godoxy/internal/types"
-	"github.com/yusing/godoxy/internal/watcher/events"
+	watcherEvents "github.com/yusing/godoxy/internal/watcher/events"
 	gperr "github.com/yusing/goutils/errs"
 	gevents "github.com/yusing/goutils/events"
 	"github.com/yusing/goutils/http/reverseproxy"
@@ -577,9 +577,9 @@ func (w *Watcher) watchUntilDestroy() (returnCause error) {
 		case e := <-eventCh:
 			w.l.Debug().Stringer("action", e.Action).Msg("state changed")
 			switch e.Action {
-			case events.ActionContainerDestroy:
+			case watcherEvents.ActionContainerDestroy:
 				return errCauseContainerDestroy
-			case events.ActionForceReload:
+			case watcherEvents.ActionForceReload:
 				continue
 			}
 			w.resetIdleTimer()

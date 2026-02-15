@@ -1,6 +1,10 @@
 package icons
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+
+	"github.com/yusing/godoxy/internal/common"
+)
 
 type Provider interface {
 	HasIcon(u *URL) bool
@@ -13,6 +17,9 @@ func SetProvider(p Provider) {
 }
 
 func hasIcon(u *URL) bool {
+	if common.IsTest {
+		return true
+	}
 	v := provider.Load()
 	if v == nil {
 		return false

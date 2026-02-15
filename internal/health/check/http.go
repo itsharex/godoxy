@@ -45,7 +45,7 @@ func HTTP(url *url.URL, method, path string, timeout time.Duration) (types.Healt
 	req.SetRequestURI(url.JoinPath(path).String())
 	req.Header.SetMethod(method)
 	setCommonHeaders(req.Header.Set)
-	req.SetConnectionClose()
+	// req.SetConnectionClose() // allow connection reuse
 
 	start := time.Now()
 	respErr := pinger.DoTimeout(req, resp, timeout)

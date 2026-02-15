@@ -13,7 +13,7 @@
     !path regex("\/assets\/workbox-window\.prod\.es5-[a-zA-Z0-9]+\.js")
     !path regex("/workbox-[a-zA-Z0-9]+\.js")
     !path /api/v1/version
-    !path /manifest.webmanifest
+    !path /manifest.json
     !path /sw.js
     !path /registerSW.js
   do: require_auth

@@ -14,6 +14,7 @@ import (
 	"github.com/yusing/godoxy/internal/maxmind"
 	"github.com/yusing/godoxy/internal/notif"
 	gperr "github.com/yusing/goutils/errs"
+	aclevents "github.com/yusing/goutils/events/acl"
 	strutils "github.com/yusing/goutils/strings"
 	"github.com/yusing/goutils/task"
 )
@@ -70,8 +71,9 @@ type checkCache struct {
 }
 
 type ipLog struct {
-	info    *maxmind.IPInfo
-	allowed bool
+	info        *maxmind.IPInfo
+	allowed     bool
+	blockedRule string
 }
 
 const cacheTTL = 1 * time.Minute
@@ -211,22 +213,25 @@ func (c *Config) logNotifyLoop(parent task.Parent) {
 		select {
 		case <-parent.Context().Done():
 			return
-		case log := <-c.logNotifyCh:
+		case req := <-c.logNotifyCh:
 			if c.logger != nil {
-				if !log.allowed || c.logAllowed {
-					c.logger.LogACL(log.info, !log.allowed)
+				if !req.allowed || c.logAllowed {
+					c.logger.LogACL(req.info, !req.allowed)
 				}
 			}
 			if c.needNotify() {
-				if log.allowed {
+				if req.allowed {
 					if c.notifyAllowed {
-						c.allowedCount[log.info.Str]++
+						c.allowedCount[req.info.Str]++
 						c.totalAllowedCount++
 					}
 				} else {
-					c.blockedCount[log.info.Str]++
+					c.blockedCount[req.info.Str]++
 					c.totalBlockedCount++
 				}
+			}
+			if !req.allowed {
+				aclevents.Blocked(req.info.Str, req.blockedRule)
 			}
 		case <-c.notifyTicker.C: // will never tick when notify is disabled
 			total := len(c.allowedCount) + len(c.blockedCount)
@@ -259,9 +264,9 @@ func (c *Config) logNotifyLoop(parent task.Parent) {
 }
 
 // log and notify if needed
-func (c *Config) logAndNotify(info *maxmind.IPInfo, allowed bool) {
+func (c *Config) logAndNotify(info *maxmind.IPInfo, allowed bool, blockedRule string) {
 	if c.logNotifyCh != nil {
-		c.logNotifyCh <- ipLog{info: info, allowed: allowed}
+		c.logNotifyCh <- ipLog{info: info, allowed: allowed, blockedRule: blockedRule}
 	}
 }
 
@@ -276,30 +281,30 @@ func (c *Config) IPAllowed(ip net.IP) bool {
 	}
 
 	if c.allowLocal && ip.IsPrivate() {
-		c.logAndNotify(&maxmind.IPInfo{IP: ip, Str: ip.String()}, true)
+		c.logAndNotify(&maxmind.IPInfo{IP: ip, Str: ip.String()}, true, "")
 		return true
 	}
 
 	ipStr := ip.String()
 	record, ok := c.ipCache.Load(ipStr)
 	if ok && !record.Expired() {
-		c.logAndNotify(record.IPInfo, record.allow)
+		c.logAndNotify(record.IPInfo, record.allow, "")
 		return record.allow
 	}
 
 	ipAndStr := &maxmind.IPInfo{IP: ip, Str: ipStr}
-	if c.Deny.Match(ipAndStr) {
-		c.logAndNotify(ipAndStr, false)
+	if index := c.Deny.MatchedIndex(ipAndStr); index != -1 {
+		c.logAndNotify(ipAndStr, false, c.Deny[index].raw)
 		c.cacheRecord(ipAndStr, false)
 		return false
 	}
 	if c.Allow.Match(ipAndStr) {
-		c.logAndNotify(ipAndStr, true)
+		c.logAndNotify(ipAndStr, true, "")
 		c.cacheRecord(ipAndStr, true)
 		return true
 	}
 
-	c.logAndNotify(ipAndStr, c.defaultAllow)
+	c.logAndNotify(ipAndStr, c.defaultAllow, "deny by default")
 	c.cacheRecord(ipAndStr, c.defaultAllow)
 	return c.defaultAllow
 }

@@ -83,6 +83,15 @@ func (matchers Matchers) Match(ip *maxmind.IPInfo) bool {
 	return false
 }
 
+func (matchers Matchers) MatchedIndex(ip *maxmind.IPInfo) int {
+	for i, m := range matchers {
+		if m.match(ip) {
+			return i
+		}
+	}
+	return -1
+}
+
 func (matchers Matchers) MarshalText() ([]byte, error) {
 	if len(matchers) == 0 {
 		return []byte("[]"), nil

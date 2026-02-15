@@ -8,6 +8,7 @@ import (
 	"github.com/puzpuzpuz/xsync/v4"
 	nettypes "github.com/yusing/godoxy/internal/net/types"
 	"github.com/yusing/godoxy/internal/serialization"
+	httpevents "github.com/yusing/goutils/events/http"
 	httputils "github.com/yusing/goutils/http"
 )
 
@@ -71,6 +72,7 @@ func (wl *cidrWhitelist) checkIP(w http.ResponseWriter, r *http.Request) bool {
 		}
 	}
 	if !allow {
+		defer httpevents.Blocked(r, "CIDRWhitelist", "IP not allowed")
 		http.Error(w, wl.Message, wl.StatusCode)
 		return false
 	}

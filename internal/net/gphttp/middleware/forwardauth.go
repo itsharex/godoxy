@@ -3,12 +3,14 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 
 	entrypoint "github.com/yusing/godoxy/internal/entrypoint/types"
+	httpevents "github.com/yusing/goutils/events/http"
 	httputils "github.com/yusing/goutils/http"
 	"github.com/yusing/goutils/http/httpheaders"
 )
@@ -92,6 +94,8 @@ func (m *forwardAuthMiddleware) before(w http.ResponseWriter, r *http.Request) (
 	defer resp.Body.Close()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		defer httpevents.Blocked(r, "ForwardAuth", fmt.Sprintf("HTTP %d", resp.StatusCode))
+
 		body, release, err := httputils.ReadAllBody(resp)
 		defer release(body)
 
@@ -100,7 +104,6 @@ func (m *forwardAuthMiddleware) before(w http.ResponseWriter, r *http.Request) (
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
-
 		httpheaders.CopyHeader(w.Header(), resp.Header)
 		httpheaders.RemoveHopByHopHeaders(w.Header())
 

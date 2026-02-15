@@ -9,6 +9,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/yusing/godoxy/internal/auth"
+	httpevents "github.com/yusing/goutils/events/http"
 	"github.com/yusing/goutils/http/httpheaders"
 )
 
@@ -116,6 +117,10 @@ func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proce
 	err := amw.auth.CheckToken(r)
 	if err == nil {
 		return true
+	}
+
+	if r.Method != http.MethodHead {
+		defer httpevents.Blocked(r, "OIDC", err.Error())
 	}
 
 	isGet := r.Method == http.MethodGet

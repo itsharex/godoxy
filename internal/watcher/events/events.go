@@ -65,12 +65,22 @@ var fileActionNameMap = map[Action]string{
 	ActionFileRenamed: "renamed",
 }
 
+var dockerActionNameMap = map[Action]string{
+	ActionContainerCreate:  "created",
+	ActionContainerStart:   "started",
+	ActionContainerUnpause: "unpaused",
+	ActionContainerKill:    "killed",
+	ActionContainerStop:    "stopped",
+	ActionContainerPause:   "paused",
+	ActionContainerDie:     "died",
+	ActionContainerDestroy: "destroyed",
+}
+
 var actionNameMap = func() (m map[Action]string) {
-	m = make(map[Action]string, len(DockerEventMap))
-	for k, v := range DockerEventMap {
-		m[v] = string(k)
-	}
+	m = make(map[Action]string, len(fileActionNameMap)+len(dockerActionNameMap)+1)
 	maps.Copy(m, fileActionNameMap)
+	maps.Copy(m, dockerActionNameMap)
+	m[ActionForceReload] = "force-reloaded"
 	return m
 }()
 

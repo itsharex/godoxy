@@ -47,6 +47,7 @@ linters:
     errcheck:
       exclude-functions:
         - fmt.Fprintln
+        - (*gin.Context).Error # gin context error handler
     forbidigo:
       forbid:
         - pattern: ^print(ln)?$
@@ -55,21 +56,15 @@ linters:
       statements: 120
     gocyclo:
       min-complexity: 14
+    godoclint:
+      ignore: internal/api/v1/.+
     godox:
       keywords:
         - FIXME
-    gomoddirectives:
-      replace-allow-list:
-        - github.com/abbot/go-http-auth
-        - github.com/gorilla/mux
-        - github.com/mailgun/minheap
-        - github.com/mailgun/multibuf
-        - github.com/jaguilar/vt100
-        - github.com/cucumber/godog
-        - github.com/http-wasm/http-wasm-host-go
     govet:
       disable:
         - shadow
+        - fieldalignment
       enable-all: true
     misspell:
       locale: US
@@ -106,8 +101,7 @@ linters:
       checks:
         - all
         - -SA1019
-      dot-import-whitelist:
-        - github.com/yusing/godoxy/internal/utils/testing
+        - -QF1008 # keep embedded field selector for clarity
     tagalign:
       align: false
       sort: true
@@ -135,9 +129,8 @@ linters:
       - legacy
       - std-error-handling
     paths:
-      - third_party$
-      - builtin$
       - examples$
+      - internal/api/v1/.+
 formatters:
   enable:
     - gofmt
@@ -146,6 +139,7 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - third_party$
-      - builtin$
       - examples$
+      - internal/api/v1/.+
+run:
+  tests: false

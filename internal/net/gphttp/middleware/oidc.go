@@ -119,8 +119,10 @@ func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proce
 		return true
 	}
 
-	if r.Method != http.MethodHead {
-		defer httpevents.Blocked(r, "OIDC", err.Error())
+	emitBlockedEvent := func() {
+		if r.Method != http.MethodHead {
+			httpevents.Blocked(r, "OIDC", err.Error())
+		}
 	}
 
 	isGet := r.Method == http.MethodGet
@@ -135,11 +137,13 @@ func (amw *oidcMiddleware) before(w http.ResponseWriter, r *http.Request) (proce
 			reqType = "WebSocket"
 		}
 		OIDC.LogWarn(r).Msgf("[OIDC] %s request blocked.\nConsider adding bypass rule for this path if needed", reqType)
+		emitBlockedEvent()
 		return false
 	case errors.Is(err, auth.ErrMissingOAuthToken):
 		amw.auth.HandleAuth(w, r)
 	default:
 		auth.WriteBlockPage(w, http.StatusForbidden, err.Error(), "Logout", auth.OIDCLogoutPath)
+		emitBlockedEvent()
 	}
 	return false
 }

@@ -67,13 +67,14 @@ type config struct {
 type checkCache struct {
 	*maxmind.IPInfo
 	allow   bool
+	reason  string
 	created time.Time
 }
 
 type ipLog struct {
-	info        *maxmind.IPInfo
-	allowed     bool
-	blockedRule string
+	info    *maxmind.IPInfo
+	allowed bool
+	reason  string
 }
 
 const cacheTTL = 1 * time.Minute
@@ -170,13 +171,14 @@ func (c *Config) Start(parent task.Parent) error {
 	return nil
 }
 
-func (c *Config) cacheRecord(info *maxmind.IPInfo, allow bool) {
+func (c *Config) cacheRecord(info *maxmind.IPInfo, allow bool, reason string) {
 	if common.ForceResolveCountry && info.City == nil {
 		maxmind.LookupCity(info)
 	}
 	c.ipCache.Store(info.Str, &checkCache{
 		IPInfo:  info,
 		allow:   allow,
+		reason:  reason,
 		created: time.Now(),
 	})
 }
@@ -216,7 +218,7 @@ func (c *Config) logNotifyLoop(parent task.Parent) {
 		case req := <-c.logNotifyCh:
 			if c.logger != nil {
 				if !req.allowed || c.logAllowed {
-					c.logger.LogACL(req.info, !req.allowed)
+					c.logger.LogACL(req.info, !req.allowed, req.reason)
 				}
 			}
 			if c.needNotify() {
@@ -231,7 +233,7 @@ func (c *Config) logNotifyLoop(parent task.Parent) {
 				}
 			}
 			if !req.allowed {
-				aclevents.Blocked(req.info.Str, req.blockedRule)
+				aclevents.Blocked(req.info.Str, req.reason)
 			}
 		case <-c.notifyTicker.C: // will never tick when notify is disabled
 			total := len(c.allowedCount) + len(c.blockedCount)
@@ -264,9 +266,9 @@ func (c *Config) logNotifyLoop(parent task.Parent) {
 }
 
 // log and notify if needed
-func (c *Config) logAndNotify(info *maxmind.IPInfo, allowed bool, blockedRule string) {
+func (c *Config) logAndNotify(info *maxmind.IPInfo, allowed bool, reason string) {
 	if c.logNotifyCh != nil {
-		c.logNotifyCh <- ipLog{info: info, allowed: allowed, blockedRule: blockedRule}
+		c.logNotifyCh <- ipLog{info: info, allowed: allowed, reason: reason}
 	}
 }
 
@@ -281,30 +283,36 @@ func (c *Config) IPAllowed(ip net.IP) bool {
 	}
 
 	if c.allowLocal && ip.IsPrivate() {
-		c.logAndNotify(&maxmind.IPInfo{IP: ip, Str: ip.String()}, true, "")
+		c.logAndNotify(&maxmind.IPInfo{IP: ip, Str: ip.String()}, true, "allowed by allow_local rule")
 		return true
 	}
 
 	ipStr := ip.String()
 	record, ok := c.ipCache.Load(ipStr)
 	if ok && !record.Expired() {
-		c.logAndNotify(record.IPInfo, record.allow, "")
+		c.logAndNotify(record.IPInfo, record.allow, record.reason)
 		return record.allow
 	}
 
 	ipAndStr := &maxmind.IPInfo{IP: ip, Str: ipStr}
 	if index := c.Deny.MatchedIndex(ipAndStr); index != -1 {
-		c.logAndNotify(ipAndStr, false, c.Deny[index].raw)
-		c.cacheRecord(ipAndStr, false)
+		reason := "blocked by deny rule: " + c.Deny[index].raw
+		c.logAndNotify(ipAndStr, false, reason)
+		c.cacheRecord(ipAndStr, false, reason)
 		return false
 	}
-	if c.Allow.Match(ipAndStr) {
-		c.logAndNotify(ipAndStr, true, "")
-		c.cacheRecord(ipAndStr, true)
+	if index := c.Allow.MatchedIndex(ipAndStr); index != -1 {
+		reason := "allowed by allow rule: " + c.Allow[index].raw
+		c.logAndNotify(ipAndStr, true, reason)
+		c.cacheRecord(ipAndStr, true, reason)
 		return true
 	}
 
-	c.logAndNotify(ipAndStr, c.defaultAllow, "deny by default")
-	c.cacheRecord(ipAndStr, c.defaultAllow)
+	reason := "deny by default"
+	if c.defaultAllow {
+		reason = "allow by default"
+	}
+	c.logAndNotify(ipAndStr, c.defaultAllow, reason)
+	c.cacheRecord(ipAndStr, c.defaultAllow, reason)
 	return c.defaultAllow
 }

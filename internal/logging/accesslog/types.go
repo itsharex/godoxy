@@ -13,7 +13,7 @@ type (
 	AccessLogger interface {
 		LogRequest(req *http.Request, res *http.Response)
 		LogError(req *http.Request, err error)
-		LogACL(info *maxmind.IPInfo, blocked bool)
+		LogACL(info *maxmind.IPInfo, blocked bool, reason string)
 
 		Config() *Config
 
@@ -35,9 +35,9 @@ type (
 	}
 	ACLFormatter interface {
 		// AppendACLLog appends a log line to line with or without a trailing newline
-		AppendACLLog(line *bytes.Buffer, info *maxmind.IPInfo, blocked bool)
+		AppendACLLog(line *bytes.Buffer, info *maxmind.IPInfo, blocked bool, reason string)
 		// LogACLZeroLog logs an ACL log to the logger
-		LogACLZeroLog(logger *zerolog.Logger, info *maxmind.IPInfo, blocked bool)
+		LogACLZeroLog(logger *zerolog.Logger, info *maxmind.IPInfo, blocked bool, reason string)
 	}
 )
 

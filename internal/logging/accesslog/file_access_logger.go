@@ -131,7 +131,7 @@ func (l *fileAccessLogger) LogError(req *http.Request, err error) {
 	l.LogRequest(req, internalErrorResponse)
 }
 
-func (l *fileAccessLogger) LogACL(info *maxmind.IPInfo, blocked bool) {
+func (l *fileAccessLogger) LogACL(info *maxmind.IPInfo, blocked bool, reason string) {
 	line := bytesPool.GetBuffer()
 	defer bytesPool.PutBuffer(line)
 	l.AppendACLLog(line, info, blocked)

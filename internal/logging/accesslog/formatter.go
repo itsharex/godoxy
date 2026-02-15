@@ -171,7 +171,7 @@ func (f ACLLogFormatter) LogACLZeroLog(logger *zerolog.Logger, info *maxmind.IPI
 	event.Send()
 }
 
-func (f ConsoleACLFormatter) LogACLZeroLog(logger *zerolog.Logger, info *maxmind.IPInfo, blocked bool) {
+func (f ConsoleACLFormatter) LogACLZeroLog(logger *zerolog.Logger, info *maxmind.IPInfo, blocked bool, reason string) {
 	event := logger.Info()
 	if info.City != nil {
 		if isoCode := info.City.Country.IsoCode; isoCode != "" {
@@ -184,6 +184,10 @@ func (f ConsoleACLFormatter) LogACLZeroLog(logger *zerolog.Logger, info *maxmind
 	action := "accepted"
 	if blocked {
 		action = "denied"
+	}
+
+	if reason != "" {
+		event.Str("reason", reason)
 	}
 
 	// NOTE: zerolog will append a newline to the buffer

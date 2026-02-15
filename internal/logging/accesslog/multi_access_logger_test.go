@@ -116,7 +116,7 @@ func TestMultiAccessLoggerLogACL(t *testing.T) {
 		Str: "192.168.1.1",
 	}
 
-	logger.LogACL(info, false)
+	logger.LogACL(info, false, "test reason")
 	logger.Flush()
 
 	expect.Equal(t, writer1.NumLines(), 1)
@@ -252,7 +252,7 @@ func TestMultiAccessLoggerMixedOperations(t *testing.T) {
 	cfg2 := DefaultACLLoggerConfig()
 	cfg2.LogAllowed = true
 	aclLogger := NewMultiAccessLogger(testTask, cfg2, writers)
-	aclLogger.LogACL(info, false)
+	aclLogger.LogACL(info, false, "test reason")
 
 	logger.Flush()
 

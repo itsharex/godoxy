@@ -50,9 +50,9 @@ func (m *MultiAccessLogger) LogError(req *http.Request, err error) {
 	}
 }
 
-func (m *MultiAccessLogger) LogACL(info *maxmind.IPInfo, blocked bool) {
+func (m *MultiAccessLogger) LogACL(info *maxmind.IPInfo, blocked bool, reason string) {
 	for _, accessLogger := range m.accessLoggers {
-		accessLogger.LogACL(info, blocked)
+		accessLogger.LogACL(info, blocked, reason)
 	}
 }
 

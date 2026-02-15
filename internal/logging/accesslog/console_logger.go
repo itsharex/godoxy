@@ -59,8 +59,8 @@ func (l *ConsoleLogger) LogError(req *http.Request, err error) {
 	l.formatter.LogRequestZeroLog(&log, req, internalErrorResponse)
 }
 
-func (l *ConsoleLogger) LogACL(info *maxmind.IPInfo, blocked bool) {
-	ConsoleACLFormatter{}.LogACLZeroLog(stdoutLogger, info, blocked)
+func (l *ConsoleLogger) LogACL(info *maxmind.IPInfo, blocked bool, reason string) {
+	ConsoleACLFormatter{}.LogACLZeroLog(stdoutLogger, info, blocked, reason)
 }
 
 func (l *ConsoleLogger) Flush() {

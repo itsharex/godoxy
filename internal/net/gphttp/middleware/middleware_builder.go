@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path"
 	"sort"
@@ -92,6 +93,7 @@ func BuildMiddlewareFromChainRaw(name string, defs []map[string]any) (*Middlewar
 			chainErr.AddSubjectf(err, "%s[%d]", name, i)
 			continue
 		}
+		def = maps.Clone(def)
 		delete(def, "use")
 		m, err := base.New(def)
 		if err != nil {

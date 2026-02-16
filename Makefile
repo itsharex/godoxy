@@ -118,16 +118,17 @@ mod-tidy:
 	done
 
 minify-js:
-	@if [ ${agent} = 1 ]; then \
+	@if [ "${agent}" = "1" ]; then \
 		echo "minify-js: skipped for agent"; \
-	elif [ ${socket-proxy} = 1 ]; then \
+	elif [ "${socket-proxy}" = "1" ]; then \
 		echo "minify-js: skipped for socket-proxy"; \
 	else \
-		for file in $(find internal/ -name '*.js' | grep -v -- '-min\.js$'); do \
-			ext="${file##*.}"; \
-			base="${file%.*}"; \
-			min_file="${base}-min.$ext"; \
-			bunx --bun uglify-js $file --compress --mangle --output $min_file; \
+		for file in $$(find internal/ -name '*.js' | grep -v -- '-min\.js$$'); do \
+			ext="$${file##*.}"; \
+			base="$${file%.*}"; \
+			min_file="$${base}-min.$$ext"; \
+			echo "minifying $$file -> $$min_file"; \
+			bunx --bun uglify-js $$file --compress --mangle --output $$min_file; \
 		done \
 	fi
 

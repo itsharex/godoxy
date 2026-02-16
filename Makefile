@@ -118,13 +118,18 @@ mod-tidy:
 	done
 
 minify-js:
-	for file in $$(find internal/ -name '*.js' | grep -v -- '-min\.js$$'); do \
-		ext="$${file##*.}"; \
-		base="$${file%.*}"; \
-		min_file="$${base}-min.$$ext"; \
-		echo "minifying $$file -> $$min_file"; \
-		bunx --bun uglify-js $$file --compress --mangle --output $$min_file; \
-	done
+	@if [ ${agent} = 1 ]; then \
+		echo "minify-js: skipped for agent"; \
+	elif [ ${socket-proxy} = 1 ]; then \
+		echo "minify-js: skipped for socket-proxy"; \
+	else \
+		for file in $(find internal/ -name '*.js' | grep -v -- '-min\.js$'); do \
+			ext="${file##*.}"; \
+			base="${file%.*}"; \
+			min_file="${base}-min.$ext"; \
+			bunx --bun uglify-js $file --compress --mangle --output $min_file; \
+		done \
+	fi
 
 build: minify-js
 	mkdir -p $(shell dirname ${BIN_PATH})

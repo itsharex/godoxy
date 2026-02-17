@@ -1,4 +1,4 @@
-# Socket Proxy Reverse Proxy
+# socket-proxy/pkg/reverseproxy
 
 This package provides an HTTP reverse proxy implementation for proxying requests to Unix sockets (typically Docker sockets). It is based on Go's `net/http/httputil.ReverseProxy` with simplifications for socket proxying use cases.
 
@@ -16,7 +16,6 @@ This package provides an HTTP reverse proxy implementation for proxying requests
 1. **Director only**: Only the `Director` function is supported. The stdlib's `Rewrite` type and `ModifyResponse` hook are removed.
 
 2. **Context-aware body copying**: Uses `ioutils.CopyCloseWithContext` which:
-
    - Respects request context for cancellation
    - Uses `Content-Length` for optimal copying when available
    - Properly handles trailer headers

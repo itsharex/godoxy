@@ -1,4 +1,4 @@
-# Stream proxy protocol
+# agent/pkg/agent/stream
 
 This package implements a small header-based handshake that allows an authenticated client to request forwarding to a `(host, port)` destination. It supports both TCP-over-TLS and UDP-over-DTLS transports.
 

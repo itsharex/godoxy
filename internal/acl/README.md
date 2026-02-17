@@ -1,4 +1,4 @@
-# ACL (Access Control List)
+# internal/acl
 
 Access control at the TCP connection level with IP/CIDR, timezone, and country-based filtering.
 

@@ -1,4 +1,4 @@
-# qBittorrent Integration Package
+# internal/homepage/integrations/qbittorrent
 
 This package provides a qBittorrent widget for the GoDoxy homepage dashboard, enabling real-time monitoring of torrent status and transfer statistics.
 

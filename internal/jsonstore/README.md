@@ -1,4 +1,4 @@
-# JSON Store
+# internal/jsonstore
 
 The jsonstore package provides persistent JSON storage with namespace support, using thread-safe concurrent maps and automatic loading/saving.
 

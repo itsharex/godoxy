@@ -1,4 +1,4 @@
-# Route Provider
+# internal/route/provider
 
 Discovers and loads routes from Docker containers, YAML files, and remote agents.
 

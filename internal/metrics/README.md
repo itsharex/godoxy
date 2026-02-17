@@ -1,4 +1,4 @@
-# Metrics Package
+# internal/metrics
 
 System monitoring and metrics collection for GoDoxy with time-series storage and REST/WebSocket APIs.
 

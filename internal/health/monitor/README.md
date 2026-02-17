@@ -1,4 +1,4 @@
-# Health Monitor Package
+# internal/health/monitor
 
 Route health monitoring with configurable check intervals, retry policies, and notification integration.
 

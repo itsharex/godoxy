@@ -1,4 +1,4 @@
-# Homepage Widgets Package
+# internal/homepage/widgets
 
 > [!WARNING]
 >

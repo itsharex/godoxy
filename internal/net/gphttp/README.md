@@ -1,4 +1,4 @@
-# gphttp
+# internal/net/gphttp
 
 HTTP utilities package providing transport configuration, default HTTP client, and a wrapper around `http.ServeMux` with panic recovery.
 

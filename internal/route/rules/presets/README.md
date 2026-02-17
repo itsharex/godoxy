@@ -1,4 +1,4 @@
-# Rule Presets
+# internal/route/rules/presets
 
 Provides embedded, pre-configured rule sets for common routing patterns.
 

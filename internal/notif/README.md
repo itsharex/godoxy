@@ -1,4 +1,4 @@
-# Notifications
+# internal/notif
 
 The notif package provides a notification dispatching system for GoDoxy, supporting multiple providers (Webhook, Gotify, Ntfy) with retry logic and exponential backoff.
 

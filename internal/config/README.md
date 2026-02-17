@@ -1,4 +1,4 @@
-# Configuration Management
+# internal/config
 
 Centralized YAML configuration management with thread-safe state access and provider initialization.
 

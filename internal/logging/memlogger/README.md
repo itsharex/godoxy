@@ -1,4 +1,4 @@
-# In-Memory Logger
+# internal/logging/memlogger
 
 Provides a thread-safe in-memory circular buffer logger with WebSocket-based real-time streaming for log data.
 

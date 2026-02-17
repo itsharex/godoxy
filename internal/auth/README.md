@@ -1,4 +1,4 @@
-# Authentication
+# internal/auth
 
 Authentication providers supporting OIDC and username/password authentication with JWT-based sessions.
 

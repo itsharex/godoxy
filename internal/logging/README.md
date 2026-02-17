@@ -1,4 +1,4 @@
-# Logging Package
+# internal/logging
 
 Structured logging capabilities for GoDoxy, including application logging, HTTP access logging, and in-memory log streaming.
 

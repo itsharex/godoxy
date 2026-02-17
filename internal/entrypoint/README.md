@@ -1,4 +1,4 @@
-# Entrypoint
+# internal/entrypoint
 
 The entrypoint package provides the main HTTP entry point for GoDoxy, handling domain-based routing, middleware application, short link matching, access logging, and HTTP server lifecycle management.
 

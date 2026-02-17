@@ -1,4 +1,4 @@
-# Middleware
+# internal/net/gphttp/middleware
 
 HTTP middleware framework providing request/response processing, middleware chaining, and composition from YAML files.
 

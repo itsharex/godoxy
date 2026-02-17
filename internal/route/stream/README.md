@@ -1,4 +1,4 @@
-# Stream Handling
+# internal/route/stream
 
 Implements TCP and UDP stream proxying for non-HTTP protocols.
 

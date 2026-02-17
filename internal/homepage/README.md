@@ -1,4 +1,4 @@
-# Homepage
+# internal/homepage
 
 The homepage package provides the GoDoxy WebUI dashboard with support for categories, favorites, widgets, dynamic item configuration, and icon management.
 

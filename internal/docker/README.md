@@ -1,4 +1,4 @@
-# Docker Integration
+# internal/docker
 
 Docker container discovery, connection management, and label-based route configuration.
 

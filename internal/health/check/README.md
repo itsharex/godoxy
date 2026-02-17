@@ -1,4 +1,4 @@
-# Health Check Package
+# internal/health/check
 
 Low-level health check implementations for different protocols and services in GoDoxy.
 

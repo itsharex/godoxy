@@ -1,4 +1,4 @@
-# Icons Package
+# internal/homepage/icons
 
 Icon URL parsing, fetching, and listing for the homepage dashboard.
 

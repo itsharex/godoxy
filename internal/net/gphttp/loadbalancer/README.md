@@ -1,4 +1,4 @@
-# Load Balancer
+# internal/net/gphttp/loadbalancer
 
 Load balancing package providing multiple distribution algorithms, sticky sessions, and server health management.
 

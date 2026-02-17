@@ -1,4 +1,4 @@
-# Uptime
+# internal/metrics/uptime
 
 Tracks and aggregates route health status over time, providing uptime/downtime statistics and latency metrics.
 

@@ -1,4 +1,4 @@
-# Idlewatcher
+# internal/idlewatcher
 
 Manages container lifecycle based on idle timeout, automatically stopping/pausing containers and waking them on request.
 

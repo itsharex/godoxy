@@ -1,4 +1,4 @@
-# System Info
+# internal/metrics/systeminfo
 
 Collects and aggregates system metrics including CPU, memory, disk, network, and sensor data with configurable aggregation modes.
 
@@ -367,7 +367,7 @@ curl "http://localhost:8080/api/metrics/system?period=1h&aggregate=disks_read_sp
 
 ```javascript
 const ws = new WebSocket(
-  "ws://localhost:8080/api/metrics/system?period=1m&interval=5s&aggregate=cpu_average"
+  "ws://localhost:8080/api/metrics/system?period=1m&interval=5s&aggregate=cpu_average",
 );
 
 ws.onmessage = (event) => {

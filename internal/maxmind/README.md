@@ -1,4 +1,4 @@
-# MaxMind
+# internal/maxmind
 
 The maxmind package provides MaxMind GeoIP database integration for IP geolocation, including automatic database downloading and updates.
 

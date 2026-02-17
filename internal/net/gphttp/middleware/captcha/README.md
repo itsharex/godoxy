@@ -1,4 +1,4 @@
-# Captcha Middleware
+# internal/net/gphttp/middleware/captcha
 
 CAPTCHA verification middleware package providing session-based captcha challenge and verification.
 

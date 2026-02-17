@@ -1,4 +1,4 @@
-# Watcher
+# internal/watcher
 
 Provides file and Docker event watching capabilities for GoDoxy, enabling dynamic configuration updates.
 

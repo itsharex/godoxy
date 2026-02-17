@@ -1,4 +1,4 @@
-# Route
+# internal/route
 
 Provides HTTP routing, reverse proxy, file serving, and TCP/UDP stream proxying for GoDoxy.
 

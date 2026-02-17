@@ -1,4 +1,4 @@
-# Period Metrics
+# internal/metrics/period
 
 Provides time-bucketed metrics storage with configurable periods, enabling historical data aggregation and real-time streaming.
 
@@ -453,7 +453,7 @@ for {
 - O(1) add to circular buffer
 - O(1) get (returns slice view)
 - O(n) serialization where n = total entries
-- Memory: O(5 * 100 * sizeof(T)) = fixed overhead
+- Memory: O(5 _ 100 _ sizeof(T)) = fixed overhead
 - JSON load/save: O(n) where n = total entries
 
 ## Testing Notes

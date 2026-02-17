@@ -1,4 +1,4 @@
-# API v1 Package
+# internal/api/v1
 
 Implements the v1 REST API handlers for GoDoxy, exposing endpoints for managing routes, Docker containers, certificates, metrics, and system configuration.
 

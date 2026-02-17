@@ -1,4 +1,4 @@
-# Proxmox
+# internal/proxmox
 
 The proxmox package provides Proxmox VE integration for GoDoxy, enabling management of Proxmox LXC containers.
 

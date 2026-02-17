@@ -1,4 +1,4 @@
-# Agent Pool
+# internal/agentpool
 
 Thread-safe pool for managing remote Docker agent connections.
 

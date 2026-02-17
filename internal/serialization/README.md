@@ -1,4 +1,4 @@
-# Serialization Package
+# internal/serialization
 
 Flexible, type-safe serialization/deserialization with validation support for GoDoxy configuration.
 

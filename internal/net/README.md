@@ -1,4 +1,4 @@
-# Network Utilities
+# internal/net
 
 The net package provides network utility functions for GoDoxy, including TCP connection testing and network-related helpers.
 

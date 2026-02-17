@@ -1,4 +1,4 @@
-# Idlewatcher Provider
+# internal/idlewatcher/provider
 
 Implements container runtime abstractions for Docker and Proxmox LXC backends.
 

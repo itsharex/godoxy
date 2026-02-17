@@ -1,4 +1,4 @@
-# Autocert Package
+# internal/autocert
 
 Automated SSL certificate management using the ACME protocol (Let's Encrypt and compatible CAs).
 

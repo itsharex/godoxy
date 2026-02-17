@@ -1,4 +1,4 @@
-# Configuration Query
+# internal/config/query
 
 Read-only access to the active configuration state, including route providers and system statistics.
 
@@ -149,7 +149,7 @@ No metrics are currently exposed.
 ## Performance Characteristics
 
 - O(n) where n is number of providers for provider queries
-- O(n * m) where m is routes per provider for route search
+- O(n \* m) where m is routes per provider for route search
 - O(n) for statistics aggregation
 - No locking required (uses atomic load)
 

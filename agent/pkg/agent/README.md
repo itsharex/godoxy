@@ -1,4 +1,4 @@
-# Agent Package
+# agent/pkg/agent
 
 The `agent` package provides the client-side implementation for interacting with GoDoxy agents. It handles agent configuration, secure communication via TLS, and provides utilities for agent deployment and management.
 

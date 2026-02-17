@@ -1,4 +1,4 @@
-# DNS Providers
+# internal/dnsproviders
 
 DNS provider integrations for Let's Encrypt certificate management via the lego library.
 

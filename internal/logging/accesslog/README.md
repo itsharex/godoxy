@@ -1,4 +1,4 @@
-# Access Logging
+# internal/logging/accesslog
 
 Provides HTTP access logging with file rotation, log filtering, and multiple output formats for request and ACL event logging.
 

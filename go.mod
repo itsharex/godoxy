@@ -39,6 +39,7 @@ require (
 	golang.org/x/oauth2 v0.35.0 // oauth2 authentication
 	golang.org/x/sync v0.19.0 // errgroup and singleflight for concurrent operations
 	golang.org/x/time v0.14.0 // time utilities
+	github.com/cenkalti/backoff/v5 v5.0.3 // backoff for retrying operations
 )
 
 require (
@@ -155,7 +156,6 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
-	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect

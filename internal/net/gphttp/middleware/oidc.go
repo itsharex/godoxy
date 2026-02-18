@@ -28,6 +28,10 @@ type oidcMiddleware struct {
 
 var OIDC = NewMiddleware[oidcMiddleware]()
 
+func isOIDCAuthPath(r *http.Request) bool {
+	return strings.HasPrefix(r.URL.Path, auth.OIDCAuthBasePath)
+}
+
 func (amw *oidcMiddleware) finalize() error {
 	if !auth.IsOIDCEnabled() {
 		log.Error().Msg("OIDC not enabled but OIDC middleware is used")

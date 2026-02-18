@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	strutils "github.com/yusing/goutils/strings"
 )
@@ -32,7 +33,7 @@ var defaultChunkSize = 32 * kilobyte
 //
 // Parse implements strutils.Parser.
 func (r *Retention) Parse(v string) (err error) {
-	split := strutils.SplitSpace(v)
+	split := strings.Fields(v)
 	if len(split) != 2 {
 		return fmt.Errorf("%w: %s", ErrInvalidSyntax, v)
 	}

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/yusing/godoxy/internal/common"
-	strutils "github.com/yusing/goutils/strings"
 )
 
 var (
@@ -70,12 +69,12 @@ func cookieDomain(r *http.Request) string {
 		}
 	}
 
-	parts := strutils.SplitRune(reqHost, '.')
+	parts := strings.Split(reqHost, ".")
 	if len(parts) < 2 {
 		return ""
 	}
 	parts[0] = ""
-	return strutils.JoinRune(parts, '.')
+	return strings.Join(parts, ".")
 }
 
 func SetTokenCookie(w http.ResponseWriter, r *http.Request, name, value string, ttl time.Duration) {

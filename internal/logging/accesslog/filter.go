@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	nettypes "github.com/yusing/godoxy/internal/net/types"
-	strutils "github.com/yusing/goutils/strings"
 )
 
 type (
@@ -54,7 +53,7 @@ func (method HTTPMethod) Fulfill(req *http.Request, res *http.Response) bool {
 
 // Parse implements strutils.Parser.
 func (k *HTTPHeader) Parse(v string) error {
-	split := strutils.SplitRune(v, '=')
+	split := strings.Split(v, "=")
 	switch len(split) {
 	case 1:
 		split = append(split, "")

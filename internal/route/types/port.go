@@ -3,9 +3,9 @@ package route
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	gperr "github.com/yusing/goutils/errs"
-	strutils "github.com/yusing/goutils/strings"
 )
 
 type Port struct {
@@ -20,7 +20,7 @@ var (
 
 // Parse implements strutils.Parser.
 func (p *Port) Parse(v string) (err error) {
-	parts := strutils.SplitRune(v, ':')
+	parts := strings.Split(v, ":")
 	switch len(parts) {
 	case 1:
 		p.Listening = 0

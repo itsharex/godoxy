@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	gperr "github.com/yusing/goutils/errs"
-	strutils "github.com/yusing/goutils/strings"
 )
 
 type StatusCodeRange struct {
@@ -22,7 +22,7 @@ func (r *StatusCodeRange) Includes(code int) bool {
 
 // Parse implements strutils.Parser.
 func (r *StatusCodeRange) Parse(v string) error {
-	split := strutils.SplitRune(v, '-')
+	split := strings.Split(v, "-")
 	switch len(split) {
 	case 1:
 		start, err := strconv.Atoi(split[0])

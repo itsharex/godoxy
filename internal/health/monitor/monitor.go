@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -199,7 +200,7 @@ func (mon *monitor) Detail() string {
 
 // Name implements HealthMonitor.
 func (mon *monitor) Name() string {
-	parts := strutils.SplitRune(mon.service, '/')
+	parts := strings.Split(mon.service, "/")
 	return parts[len(parts)-1]
 }
 

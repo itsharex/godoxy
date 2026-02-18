@@ -9,7 +9,6 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/yusing/godoxy/internal/types"
 	gperr "github.com/yusing/goutils/errs"
-	strutils "github.com/yusing/goutils/strings"
 )
 
 var ErrInvalidLabel = errors.New("invalid label")
@@ -31,7 +30,7 @@ func ParseLabels(labels map[string]string, aliases ...string) (types.LabelMap, e
 	ExpandWildcard(labels, aliases...)
 
 	for lbl, value := range labels {
-		parts := strutils.SplitRune(lbl, '.')
+		parts := strings.Split(lbl, ".")
 		if parts[0] != NSProxy {
 			continue
 		}

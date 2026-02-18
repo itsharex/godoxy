@@ -46,8 +46,8 @@ func (c containerHelper) getMounts() *ordered.Map[string, string] {
 }
 
 func (c containerHelper) parseImage() *types.ContainerImage {
-	colonSep := strutils.SplitRune(c.Image, ':')
-	slashSep := strutils.SplitRune(colonSep[0], '/')
+	colonSep := strings.Split(c.Image, ":")
+	slashSep := strings.Split(colonSep[0], "/")
 	_, sha256, _ := strings.Cut(c.ImageID, ":")
 	im := &types.ContainerImage{
 		SHA256:  sha256,

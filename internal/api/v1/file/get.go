@@ -30,7 +30,7 @@ type GetFileContentRequest struct {
 // @Description	Get file content
 // @Tags			file
 // @Accept			json
-// @Produce		json,application/godoxy+yaml
+// @Produce		application/godoxy+yaml
 // @Param			query	query		GetFileContentRequest	true	"Request"
 // @Success		200			{string}	application/godoxy+yaml	"File content"
 // @Failure		400			{object}	apitypes.ErrorResponse

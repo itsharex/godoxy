@@ -2572,7 +2572,6 @@ paths:
         - FileTypeProvider
         - FileTypeMiddleware
       produces:
-      - application/json
       - application/godoxy+yaml
       responses:
         "200":

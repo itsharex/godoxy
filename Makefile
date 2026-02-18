@@ -7,7 +7,7 @@ export GOOS = linux
 REPO_URL ?= https://github.com/yusing/godoxy
 
 WEBUI_DIR ?= ../godoxy-webui
-DOCS_DIR ?= ${WEBUI_DIR}/wiki
+DOCS_DIR ?= wiki
 
 ifneq ($(BRANCH), compat)
 	GO_TAGS = sonic
@@ -178,10 +178,7 @@ gen-swagger:
 	python3 scripts/fix-swagger-json.py
 	# we don't need this
 	rm internal/api/v1/docs/docs.go
-
-gen-swagger-markdown: gen-swagger
-  # brew tap go-swagger/go-swagger && brew install go-swagger
-	swagger generate markdown -f internal/api/v1/docs/swagger.yaml --skip-validation --output ${DOCS_DIR}/src/API.md
+	cp internal/api/v1/docs/swagger.json ${DOCS_DIR}/public/api.json
 
 gen-api-types: gen-swagger
 	# --disable-throw-on-error

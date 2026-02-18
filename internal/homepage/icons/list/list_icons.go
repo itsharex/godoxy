@@ -56,7 +56,8 @@ func init() {
 func InitCache() {
 	m := make(IconMap)
 	err := serialization.LoadFileIfExist(common.IconListCachePath, &m, sonic.Unmarshal)
-	if err != nil {
+	switch {
+	case err != nil:
 		// backward compatible
 		oldFormat := struct {
 			Icons      IconMap
@@ -70,11 +71,11 @@ func InitCache() {
 			// store it to disk immediately
 			_ = serialization.SaveFile(common.IconListCachePath, &m, 0o644, sonic.Marshal)
 		}
-	} else if len(m) > 0 {
+	case len(m) > 0:
 		log.Info().
 			Int("icons", len(m)).
 			Msg("icons loaded")
-	} else {
+	default:
 		if err := updateIcons(m); err != nil {
 			log.Error().Err(err).Msg("failed to update icons")
 		}
@@ -142,32 +143,45 @@ func SearchIcons(keyword string, limit int) []*IconMetaSearch {
 		return a.rank - b.rank
 	}
 
-	var rank int
+	dashedKeyword := strings.ReplaceAll(keyword, " ", "-")
+	whitespacedKeyword := strings.ReplaceAll(keyword, "-", " ")
+
 	icons := ListAvailableIcons()
 	for k, icon := range icons {
-		if strutils.ContainsFold(string(k), keyword) || strutils.ContainsFold(icon.DisplayName, keyword) {
+		source, ref := k.SourceRef()
+
+		var rank int
+		switch {
+		case strings.EqualFold(ref, dashedKeyword):
+			// exact match: best rank, use source as tiebreaker (lower index = higher priority)
 			rank = 0
-		} else {
-			rank = fuzzy.RankMatchFold(keyword, string(k))
+		case strutils.HasPrefixFold(ref, dashedKeyword):
+			// prefix match: rank by how much extra the name has (shorter = better)
+			rank = 100 + len(ref) - len(dashedKeyword)
+		case strutils.ContainsFold(ref, dashedKeyword) || strutils.ContainsFold(icon.DisplayName, whitespacedKeyword):
+			// contains match
+			rank = 500 + len(ref) - len(dashedKeyword)
+		default:
+			rank = fuzzy.RankMatchFold(keyword, ref)
 			if rank == -1 || rank > 3 {
 				continue
 			}
+			rank += 1000
 		}
 
-		source, ref := k.SourceRef()
 		ranked := &IconMetaSearch{
 			Source: source,
 			Ref:    ref,
 			Meta:   icon,
 			rank:   rank,
 		}
-		// Sorted insert based on rank (lower rank = better match)
-		insertPos, _ := slices.BinarySearchFunc(results, ranked, sortByRank)
-		results = slices.Insert(results, insertPos, ranked)
+		results = append(results, ranked)
 		if len(results) == searchLimit {
 			break
 		}
 	}
+
+	slices.SortStableFunc(results, sortByRank)
 
 	// Extract results and limit to the requested count
 	return results[:min(len(results), limit)]

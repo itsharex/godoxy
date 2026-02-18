@@ -27,7 +27,11 @@ func (p *Port) Parse(v string) (err error) {
 		p.Proxy, err = strconv.Atoi(v)
 	case 2:
 		var err2 error
-		p.Listening, err = strconv.Atoi(parts[0])
+		if parts[0] == "" {
+			p.Listening = 0
+		} else {
+			p.Listening, err = strconv.Atoi(parts[0])
+		}
 		p.Proxy, err2 = strconv.Atoi(parts[1])
 		err = gperr.Join(err, err2)
 	default:

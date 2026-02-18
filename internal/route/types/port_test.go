@@ -10,7 +10,6 @@ var invalidPorts = []string{
 	"",
 	"123:",
 	"0:",
-	":1234",
 	"qwerty",
 	"asdfgh:asdfgh",
 	"1234:asdfgh",
@@ -76,6 +75,14 @@ func TestPortValid(t *testing.T) {
 			expect: Port{
 				Listening: 1234,
 				Proxy:     5678,
+			},
+		},
+		{
+			name:   "valid_lp_empty",
+			inputs: ":1234",
+			expect: Port{
+				Listening: 0,
+				Proxy:     1234,
 			},
 		},
 		{

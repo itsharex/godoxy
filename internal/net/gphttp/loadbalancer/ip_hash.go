@@ -19,8 +19,10 @@ type ipHash struct {
 	mu     sync.Mutex
 }
 
-var _ impl = (*ipHash)(nil)
-var _ customServeHTTP = (*ipHash)(nil)
+var (
+	_ impl            = (*ipHash)(nil)
+	_ customServeHTTP = (*ipHash)(nil)
+)
 
 func (lb *LoadBalancer) newIPHash() impl {
 	impl := &ipHash{LoadBalancer: lb}

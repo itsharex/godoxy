@@ -68,7 +68,7 @@ func TestMultipleCertificatesLifecycle(t *testing.T) {
 	require.Equal(t, "custom", cfg.Extra[1].Provider)
 
 	/* track cert requests for all configs */
-	os.MkdirAll("certs", 0755)
+	os.MkdirAll("certs", 0o755)
 	defer os.RemoveAll("certs")
 
 	err = provider.ObtainCertIfNotExistsAll()

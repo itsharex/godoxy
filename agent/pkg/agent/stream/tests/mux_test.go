@@ -45,9 +45,10 @@ func TestTLSALPNMux_HTTPAndStreamShareOnePort(t *testing.T) {
 	defer func() { _ = tlsLn.Close() }()
 
 	// HTTP server
-	httpSrv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("ok"))
-	}),
+	httpSrv := &http.Server{
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte("ok"))
+		}),
 		TLSNextProto: map[string]func(*http.Server, *tls.Conn, http.Handler){
 			stream.StreamALPN: func(_ *http.Server, conn *tls.Conn, _ http.Handler) {
 				streamSrv.ServeConn(conn)

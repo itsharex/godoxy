@@ -21,8 +21,10 @@ const (
 
 var version = [versionSize]byte{'0', '.', '1', '.', '0', 0, 0, 0}
 
-var ErrInvalidHeader = errors.New("invalid header")
-var ErrCloseImmediately = errors.New("close immediately")
+var (
+	ErrInvalidHeader    = errors.New("invalid header")
+	ErrCloseImmediately = errors.New("close immediately")
+)
 
 type FlagType uint8
 

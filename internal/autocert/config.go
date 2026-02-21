@@ -23,33 +23,35 @@ import (
 	strutils "github.com/yusing/goutils/strings"
 )
 
-type ConfigExtra Config
-type Config struct {
-	Email       string                       `json:"email,omitempty"`
-	Domains     []string                     `json:"domains,omitempty"`
-	CertPath    string                       `json:"cert_path,omitempty"`
-	KeyPath     string                       `json:"key_path,omitempty"`
-	Extra       []ConfigExtra                `json:"extra,omitempty"`
-	ACMEKeyPath string                       `json:"acme_key_path,omitempty"` // shared by all extra providers with the same CA directory URL
-	Provider    string                       `json:"provider,omitempty"`
-	Options     map[string]strutils.Redacted `json:"options,omitempty"`
+type (
+	ConfigExtra Config
+	Config      struct {
+		Email       string                       `json:"email,omitempty"`
+		Domains     []string                     `json:"domains,omitempty"`
+		CertPath    string                       `json:"cert_path,omitempty"`
+		KeyPath     string                       `json:"key_path,omitempty"`
+		Extra       []ConfigExtra                `json:"extra,omitempty"`
+		ACMEKeyPath string                       `json:"acme_key_path,omitempty"` // shared by all extra providers with the same CA directory URL
+		Provider    string                       `json:"provider,omitempty"`
+		Options     map[string]strutils.Redacted `json:"options,omitempty"`
 
-	Resolvers []string `json:"resolvers,omitempty"`
+		Resolvers []string `json:"resolvers,omitempty"`
 
-	// Custom ACME CA
-	CADirURL string   `json:"ca_dir_url,omitempty"`
-	CACerts  []string `json:"ca_certs,omitempty"`
+		// Custom ACME CA
+		CADirURL string   `json:"ca_dir_url,omitempty"`
+		CACerts  []string `json:"ca_certs,omitempty"`
 
-	// EAB
-	EABKid  string `json:"eab_kid,omitempty" validate:"required_with=EABHmac"`
-	EABHmac string `json:"eab_hmac,omitempty" validate:"required_with=EABKid"` // base64 encoded
+		// EAB
+		EABKid  string `json:"eab_kid,omitempty" validate:"required_with=EABHmac"`
+		EABHmac string `json:"eab_hmac,omitempty" validate:"required_with=EABKid"` // base64 encoded
 
-	HTTPClient *http.Client `json:"-"` // for tests only
+		HTTPClient *http.Client `json:"-"` // for tests only
 
-	challengeProvider challenge.Provider
+		challengeProvider challenge.Provider
 
-	idx int // 0: main, 1+: extra[i]
-}
+		idx int // 0: main, 1+: extra[i]
+	}
+)
 
 var (
 	ErrMissingField    = gperr.New("missing field")

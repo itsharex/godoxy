@@ -523,11 +523,11 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 	// The path /files/index.html gets mapped to tempDir + "/files/index.html"
 	// We need to create the file at the expected path
 	filesDir := filepath.Join(tempDir, "files")
-	err = os.Mkdir(filesDir, 0755)
+	err = os.Mkdir(filesDir, 0o755)
 	require.NoError(t, err)
 
 	filesIndexFile := filepath.Join(filesDir, "index.html")
-	err = os.WriteFile(filesIndexFile, []byte("<h1>Test Page</h1>"), 0644)
+	err = os.WriteFile(filesIndexFile, []byte("<h1>Test Page</h1>"), 0o644)
 	require.NoError(t, err)
 
 	req1 := httptest.NewRequest(http.MethodGet, "/files/index.html", nil)

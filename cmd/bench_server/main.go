@@ -2,13 +2,14 @@ package main
 
 import (
 	"log"
-	"net/http"
-
 	"math/rand/v2"
+	"net/http"
 )
 
-var printables = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-var random = make([]byte, 4096)
+var (
+	printables = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	random     = make([]byte, 4096)
+)
 
 func init() {
 	for i := range random {

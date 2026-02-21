@@ -61,7 +61,7 @@ func (cfg *DockerProviderConfig) Parse(value string) error {
 
 func (cfg *DockerProviderConfig) UnmarshalMap(m map[string]any) error {
 	var tmp DockerProviderConfigDetailed
-	var err = serialization.MapUnmarshalValidate(m, &tmp)
+	err := serialization.MapUnmarshalValidate(m, &tmp)
 	if err != nil {
 		return err
 	}

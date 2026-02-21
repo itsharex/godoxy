@@ -46,7 +46,7 @@ func BenchmarkRules(b *testing.B) {
 	})
 
 	b.Run("RunHandler", func(b *testing.B) {
-		var r = &http.Request{
+		r := &http.Request{
 			Body: io.NopCloser(bytes.NewReader([]byte(""))),
 			URL:  &url.URL{Path: "/api/users/"},
 		}
@@ -59,8 +59,7 @@ func BenchmarkRules(b *testing.B) {
 	})
 }
 
-type noopResponseWriter struct {
-}
+type noopResponseWriter struct{}
 
 func (w noopResponseWriter) Header() http.Header {
 	return http.Header{}

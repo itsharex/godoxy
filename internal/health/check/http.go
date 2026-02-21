@@ -24,6 +24,7 @@ var h2cClient = &http.Client{
 		},
 	},
 }
+
 var pinger = &fasthttp.Client{
 	MaxConnDuration:               0,
 	DisableHeaderNamesNormalizing: true,

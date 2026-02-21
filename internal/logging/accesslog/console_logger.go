@@ -21,7 +21,8 @@ var stdoutLogger = func() *zerolog.Logger {
 		w.FieldsOrder = []string{
 			"uri", "protocol", "type", "size",
 			"useragent", "query", "headers", "cookies",
-			"error", "iso_code", "time_zone"}
+			"error", "iso_code", "time_zone",
+		}
 	})).With().Str("level", zerolog.InfoLevel.String()).Timestamp().Logger()
 	return &l
 }()

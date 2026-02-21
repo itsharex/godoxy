@@ -63,8 +63,10 @@ const (
 	errBurst     = 5
 )
 
-var bytesPool = synk.GetUnsizedBytesPool()
-var sizedPool = synk.GetSizedBytesPool()
+var (
+	bytesPool = synk.GetUnsizedBytesPool()
+	sizedPool = synk.GetSizedBytesPool()
+)
 
 func NewFileAccessLogger(parent task.Parent, file File, anyCfg AnyConfig) AccessLogger {
 	cfg := anyCfg.ToConfig()

@@ -13,8 +13,10 @@ type leastConn struct {
 	nConn *xsync.Map[types.LoadBalancerServer, *atomic.Int64]
 }
 
-var _ impl = (*leastConn)(nil)
-var _ customServeHTTP = (*leastConn)(nil)
+var (
+	_ impl            = (*leastConn)(nil)
+	_ customServeHTTP = (*leastConn)(nil)
+)
 
 func (lb *LoadBalancer) newLeastConn() impl {
 	return &leastConn{

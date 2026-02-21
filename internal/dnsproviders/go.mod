@@ -5,12 +5,12 @@ go 1.26.0
 replace github.com/yusing/godoxy => ../..
 
 require (
-	github.com/go-acme/lego/v4 v4.31.0
-	github.com/yusing/godoxy v0.25.3
+	github.com/go-acme/lego/v4 v4.32.0
+	github.com/yusing/godoxy v0.26.0
 )
 
 require (
-	cloud.google.com/go/auth v0.18.1 // indirect
+	cloud.google.com/go/auth v0.18.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0 // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
-	github.com/go-resty/resty/v2 v2.17.1 // indirect
+	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.12 // indirect
 	github.com/googleapis/gax-go/v2 v2.17.0 // indirect
-	github.com/gotify/server/v2 v2.8.0 // indirect
+	github.com/gotify/server/v2 v2.9.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -65,8 +65,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/nrdcg/goacmedns v0.2.0 // indirect
 	github.com/nrdcg/goinwx v0.12.0 // indirect
-	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.1 // indirect
-	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.1 // indirect
+	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.2 // indirect
+	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.2 // indirect
 	github.com/nrdcg/porkbun v0.4.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
@@ -98,8 +98,8 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.266.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/api v0.267.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect

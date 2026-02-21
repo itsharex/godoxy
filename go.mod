@@ -21,14 +21,15 @@ replace (
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0 // parsing HTML for extract fav icon; modify_html middleware
+	github.com/cenkalti/backoff/v5 v5.0.3 // backoff for retrying operations
 	github.com/coreos/go-oidc/v3 v3.17.0 // oidc authentication
 	github.com/fsnotify/fsnotify v1.9.0 // file watcher
 	github.com/gin-gonic/gin v1.11.0 // api server
-	github.com/go-acme/lego/v4 v4.31.0 // acme client
+	github.com/go-acme/lego/v4 v4.32.0 // acme client
 	github.com/go-playground/validator/v10 v10.30.1 // validator
 	github.com/gobwas/glob v0.2.3 // glob matcher for route rules
 	github.com/gorilla/websocket v1.5.3 // websocket for API and agent
-	github.com/gotify/server/v2 v2.8.0 // reference the Message struct for json response
+	github.com/gotify/server/v2 v2.9.0 // reference the Message struct for json response
 	github.com/lithammer/fuzzysearch v1.1.8 // fuzzy search for searching icons and filtering metrics
 	github.com/pires/go-proxyproto v0.11.0 // proxy protocol support
 	github.com/puzpuzpuz/xsync/v4 v4.4.0 // lock free map for concurrent operations
@@ -39,7 +40,6 @@ require (
 	golang.org/x/oauth2 v0.35.0 // oauth2 authentication
 	golang.org/x/sync v0.19.0 // errgroup and singleflight for concurrent operations
 	golang.org/x/time v0.14.0 // time utilities
-	github.com/cenkalti/backoff/v5 v5.0.3 // backoff for retrying operations
 )
 
 require (
@@ -48,7 +48,7 @@ require (
 	github.com/docker/cli v29.2.1+incompatible // needs docker/cli/cli/connhelper connection helper for docker client
 	github.com/goccy/go-yaml v1.19.2 // yaml parsing for different config files
 	github.com/golang-jwt/jwt/v5 v5.3.1 // jwt authentication
-	github.com/luthermonson/go-proxmox v0.3.2 // proxmox API client
+	github.com/luthermonson/go-proxmox v0.4.0 // proxmox API client
 	github.com/moby/moby/api v1.52.0 // docker API
 	github.com/moby/moby/client v0.2.1 // docker client
 	github.com/oschwald/maxminddb-golang v1.13.1 // maxminddb for geoip database
@@ -58,17 +58,17 @@ require (
 	github.com/stretchr/testify v1.11.1 // testing framework
 	github.com/valyala/fasthttp v1.69.0 // fast http for health check
 	github.com/yusing/ds v0.4.1 // data structures and algorithms
-	github.com/yusing/godoxy/agent v0.0.0-20260211033321-22f03488e998
-	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260211033321-22f03488e998
+	github.com/yusing/godoxy/agent v0.0.0-20260218101334-add7884a365e
+	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260218101334-add7884a365e
 	github.com/yusing/gointernals v0.2.0
 	github.com/yusing/goutils v0.7.0
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260211095624-f5a276d5c58b
-	github.com/yusing/goutils/http/websocket v0.0.0-20260211095624-f5a276d5c58b
-	github.com/yusing/goutils/server v0.0.0-20260211095624-f5a276d5c58b
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260218062549-0b0fa3a059ec
+	github.com/yusing/goutils/http/websocket v0.0.0-20260218062549-0b0fa3a059ec
+	github.com/yusing/goutils/server v0.0.0-20260218062549-0b0fa3a059ec
 )
 
 require (
-	cloud.google.com/go/auth v0.18.1 // indirect
+	cloud.google.com/go/auth v0.18.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0 // indirect
@@ -142,8 +142,8 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.266.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
+	google.golang.org/api v0.267.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
 	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect
@@ -165,7 +165,7 @@ require (
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
-	github.com/go-resty/resty/v2 v2.17.1 // indirect
+	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
@@ -173,10 +173,10 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/linode/linodego v1.65.0 // indirect
-	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
+	github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88 // indirect
 	github.com/nrdcg/goinwx v0.12.0 // indirect
-	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.1 // indirect
-	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.1 // indirect
+	github.com/nrdcg/oci-go-sdk/common/v1065 v1065.108.2 // indirect
+	github.com/nrdcg/oci-go-sdk/dns/v1065 v1065.108.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pion/dtls/v3 v3.1.2 // indirect
 	github.com/pion/logging v0.2.4 // indirect

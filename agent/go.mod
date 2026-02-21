@@ -27,7 +27,7 @@ require (
 	github.com/pion/transport/v3 v3.1.1
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
-	github.com/yusing/godoxy v0.25.3
+	github.com/yusing/godoxy v0.26.0
 	github.com/yusing/godoxy/socketproxy v0.0.0-00010101000000-000000000000
 	github.com/yusing/goutils v0.7.0
 )
@@ -63,7 +63,7 @@ require (
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
+	github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -91,8 +91,8 @@ require (
 	github.com/valyala/fasthttp v1.69.0 // indirect
 	github.com/yusing/ds v0.4.1 // indirect
 	github.com/yusing/gointernals v0.2.0 // indirect
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260211095624-f5a276d5c58b // indirect
-	github.com/yusing/goutils/http/websocket v0.0.0-20260211095624-f5a276d5c58b // indirect
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260218062549-0b0fa3a059ec // indirect
+	github.com/yusing/goutils/http/websocket v0.0.0-20260218062549-0b0fa3a059ec // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0 // indirect

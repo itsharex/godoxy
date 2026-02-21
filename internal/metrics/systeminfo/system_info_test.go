@@ -11,7 +11,6 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/net"
 	"github.com/shirou/gopsutil/v4/sensors"
-	"github.com/yusing/goutils/intern"
 	expect "github.com/yusing/goutils/testing"
 )
 
@@ -27,21 +26,21 @@ var (
 		},
 		Disks: map[string]disk.UsageStat{
 			"sda": {
-				Path:   intern.Make("/"),
-				Fstype: intern.Make("ext4"),
+				Path:   "/",
+				Fstype: "ext4",
 				Free:   250000000000,
 				Used:   250000000000,
 			},
 			"nvme0n1": {
-				Path:   intern.Make("/"),
-				Fstype: intern.Make("zfs"),
+				Path:   "/",
+				Fstype: "zfs",
 				Free:   250000000000,
 				Used:   250000000000,
 			},
 		},
 		DisksIO: map[string]*disk.IOCountersStat{
 			"media": {
-				Name:       intern.Make("media"),
+				Name:       "media",
 				ReadBytes:  1000000,
 				WriteBytes: 2000000,
 				IOCountersStatExtra: disk.IOCountersStatExtra{
@@ -51,7 +50,7 @@ var (
 				},
 			},
 			"nvme0n1": {
-				Name:       intern.Make("nvme0n1"),
+				Name:       "nvme0n1",
 				ReadBytes:  1000000,
 				WriteBytes: 2000000,
 				IOCountersStatExtra: disk.IOCountersStatExtra{
@@ -69,11 +68,11 @@ var (
 		},
 		Sensors: []sensors.TemperatureStat{
 			{
-				SensorKey:   intern.Make("cpu_temp"),
+				SensorKey:   "cpu_temp",
 				Temperature: 30.0,
 			},
 			{
-				SensorKey:   intern.Make("gpu_temp"),
+				SensorKey:   "gpu_temp",
 				Temperature: 40.0,
 			},
 		},

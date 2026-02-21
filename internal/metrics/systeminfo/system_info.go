@@ -172,12 +172,12 @@ func (s *SystemInfo) collectDisksInfo(ctx context.Context, lastResult *SystemInf
 	s.Disks = make(map[string]disk.UsageStat, len(partitions))
 	errs := gperr.NewBuilder("failed to get disks info")
 	for _, partition := range partitions {
-		diskInfo, err := disk.UsageWithContext(ctx, partition.Mountpoint.Value())
+		diskInfo, err := disk.UsageWithContext(ctx, partition.Mountpoint)
 		if err != nil {
 			errs.Add(err)
 			continue
 		}
-		s.Disks[partition.Device.Value()] = diskInfo
+		s.Disks[partition.Device] = diskInfo
 	}
 
 	if errs.HasError() {
@@ -320,7 +320,7 @@ func aggregate(entries []*SystemInfo, query url.Values) (total int, result Aggre
 			}
 			m := make(map[string]any, len(entry.Sensors)+1)
 			for _, sensor := range entry.Sensors {
-				m[sensor.SensorKey.Value()] = sensor.Temperature
+				m[sensor.SensorKey] = sensor.Temperature
 			}
 			m["timestamp"] = entry.Timestamp
 			aggregated = append(aggregated, m)

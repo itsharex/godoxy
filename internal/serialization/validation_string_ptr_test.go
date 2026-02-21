@@ -27,9 +27,9 @@ func TestValidateWithCustomValidator_StringPointer(t *testing.T) {
 		input   *string
 		wantErr bool
 	}{
-		{"valid string pointer", ptr("hello"), false},
+		{"valid string pointer", new("hello"), false},
 		{"nil string pointer", nil, false},
-		{"empty string pointer", ptr(""), false},
+		{"empty string pointer", new(""), false},
 	}
 
 	for _, tt := range tests {
@@ -69,11 +69,11 @@ func TestValidateWithCustomValidator_CustomValidatingPointerStringPointer(t *tes
 		input   *CustomValidatingPointerString
 		wantErr bool
 	}{
-		{"valid custom validating pointer string", customStringPointerPtr(CustomValidatingPointerString("hello")), false},
+		{"valid custom validating pointer string", new(CustomValidatingPointerString("hello")), false},
 		{"nil custom validating pointer string", nil, true}, // Should fail because Validate() checks for nil
-		{"invalid custom validating pointer string - empty", customStringPointerPtr(CustomValidatingPointerString("")), true},
-		{"invalid custom validating pointer string - too short", customStringPointerPtr(CustomValidatingPointerString("a")), true},
-		{"valid custom validating pointer string - minimum length", customStringPointerPtr(CustomValidatingPointerString("ab")), false},
+		{"invalid custom validating pointer string - empty", new(CustomValidatingPointerString("")), true},
+		{"invalid custom validating pointer string - too short", new(CustomValidatingPointerString("a")), true},
+		{"valid custom validating pointer string - minimum length", new(CustomValidatingPointerString("ab")), false},
 	}
 
 	for _, tt := range tests {
@@ -84,9 +84,4 @@ func TestValidateWithCustomValidator_CustomValidatingPointerStringPointer(t *tes
 			}
 		})
 	}
-}
-
-// Helper function to create CustomValidatingPointerString pointer
-func customStringPointerPtr(s CustomValidatingPointerString) *CustomValidatingPointerString {
-	return &s
 }

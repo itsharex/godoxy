@@ -162,10 +162,9 @@ func (ep *Entrypoint) SetAccessLogger(parent task.Parent, cfg *accesslog.Request
 }
 
 func findRouteAnyDomain(routes HTTPRoutes, host string) types.HTTPRoute {
-	//nolint:modernize
-	idx := strings.IndexByte(host, '.')
-	if idx != -1 {
-		target := host[:idx]
+	before, _, ok := strings.Cut(host, ".")
+	if ok {
+		target := before
 		if r, ok := routes.Get(target); ok {
 			return r
 		}

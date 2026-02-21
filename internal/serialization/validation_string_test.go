@@ -67,10 +67,10 @@ func TestValidateWithCustomValidator_CustomValidatingStringPointer(t *testing.T)
 		input   *CustomValidatingString
 		wantErr bool
 	}{
-		{"valid custom validating string pointer", ptr(CustomValidatingString("hello")), false},
+		{"valid custom validating string pointer", new(CustomValidatingString("hello")), false},
 		{"nil custom validating string pointer", nil, true},
-		{"invalid custom validating string pointer - empty", ptr(CustomValidatingString("")), true},
-		{"invalid custom validating string pointer - too short", ptr(CustomValidatingString("a")), true},
+		{"invalid custom validating string pointer - empty", new(CustomValidatingString("")), true},
+		{"invalid custom validating string pointer - too short", new(CustomValidatingString("a")), true},
 	}
 
 	for _, tt := range tests {

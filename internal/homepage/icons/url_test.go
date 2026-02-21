@@ -7,10 +7,6 @@ import (
 	expect "github.com/yusing/goutils/testing"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestIconURL(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -22,7 +18,7 @@ func TestIconURL(t *testing.T) {
 			name:  "absolute",
 			input: "http://example.com/icon.png",
 			wantValue: &URL{
-				FullURL: strPtr("http://example.com/icon.png"),
+				FullURL: new("http://example.com/icon.png"),
 				Source:  SourceAbsolute,
 			},
 		},
@@ -30,7 +26,7 @@ func TestIconURL(t *testing.T) {
 			name:  "relative",
 			input: "@target/icon.png",
 			wantValue: &URL{
-				FullURL: strPtr("/icon.png"),
+				FullURL: new("/icon.png"),
 				Source:  SourceRelative,
 			},
 		},
@@ -38,7 +34,7 @@ func TestIconURL(t *testing.T) {
 			name:  "relative2",
 			input: "/icon.png",
 			wantValue: &URL{
-				FullURL: strPtr("/icon.png"),
+				FullURL: new("/icon.png"),
 				Source:  SourceRelative,
 			},
 		},

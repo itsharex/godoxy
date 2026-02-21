@@ -63,11 +63,11 @@ func TestValidateWithCustomValidator_PointerMethodWithPointerPassed(t *testing.T
 		input   *CustomValidatingInt
 		wantErr bool
 	}{
-		{"valid custom validating int pointer", ptr(CustomValidatingInt(50)), false},
+		{"valid custom validating int pointer", new(CustomValidatingInt(50)), false},
 		{"nil custom validating int pointer", nil, true}, // Should fail because Validate() checks for nil
-		{"invalid custom validating int pointer - zero", ptr(CustomValidatingInt(0)), true},
-		{"invalid custom validating int pointer - negative", ptr(CustomValidatingInt(-5)), true},
-		{"invalid custom validating int pointer - too large", ptr(CustomValidatingInt(200)), true},
+		{"invalid custom validating int pointer - zero", new(CustomValidatingInt(0)), true},
+		{"invalid custom validating int pointer - negative", new(CustomValidatingInt(-5)), true},
+		{"invalid custom validating int pointer - too large", new(CustomValidatingInt(200)), true},
 	}
 
 	for _, tt := range tests {
@@ -86,10 +86,10 @@ func TestValidateWithCustomValidator_ValueMethodButPointerPassed(t *testing.T) {
 		input   *CustomValidatingFloat
 		wantErr bool
 	}{
-		{"valid custom validating float pointer", ptr(CustomValidatingFloat(50.5)), false},
+		{"valid custom validating float pointer", new(CustomValidatingFloat(50.5)), false},
 		{"nil custom validating float pointer", nil, false},
-		{"invalid custom validating float pointer - negative", ptr(CustomValidatingFloat(-5.5)), true},
-		{"invalid custom validating float pointer - too large", ptr(CustomValidatingFloat(2000.5)), true},
+		{"invalid custom validating float pointer - negative", new(CustomValidatingFloat(-5.5)), true},
+		{"invalid custom validating float pointer - too large", new(CustomValidatingFloat(2000.5)), true},
 	}
 
 	for _, tt := range tests {

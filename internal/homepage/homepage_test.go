@@ -9,10 +9,6 @@ import (
 	expect "github.com/yusing/goutils/testing"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestOverrideItem(t *testing.T) {
 	a := &Item{
 		Alias: "foo",
@@ -20,7 +16,7 @@ func TestOverrideItem(t *testing.T) {
 			Show: false,
 			Name: "Foo",
 			Icon: &icons.URL{
-				FullURL: strPtr("/favicon.ico"),
+				FullURL: new("/favicon.ico"),
 				Source:  icons.SourceRelative,
 			},
 			Category: "App",
@@ -31,7 +27,7 @@ func TestOverrideItem(t *testing.T) {
 		Name:     "Bar",
 		Category: "Test",
 		Icon: &icons.URL{
-			FullURL: strPtr("@walkxcode/example.png"),
+			FullURL: new("@walkxcode/example.png"),
 			Source:  icons.SourceWalkXCode,
 		},
 	}

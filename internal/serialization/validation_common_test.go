@@ -6,11 +6,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Common helper functions
-func ptr[T any](s T) *T {
-	return &s
-}
-
 // Common test function for MustRegisterValidation
 func TestMustRegisterValidation(t *testing.T) {
 	// Test registering a custom validation

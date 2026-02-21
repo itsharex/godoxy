@@ -33,11 +33,7 @@ func (p *Poller[T, AggregateT]) ServeHTTP(c *gin.Context) {
 	query := c.Request.URL.Query()
 
 	if httpheaders.IsWebsocket(c.Request.Header) {
-		interval := metricsutils.QueryDuration(query, "interval", 0)
-
-		if interval < PollInterval {
-			interval = PollInterval
-		}
+		interval := max(metricsutils.QueryDuration(query, "interval", 0), PollInterval)
 		websocket.PeriodicWrite(c, interval, func() (any, error) {
 			return p.GetRespData(period, query)
 		})

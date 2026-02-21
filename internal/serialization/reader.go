@@ -68,8 +68,7 @@ func (r *SubstituteEnvReader) Read(p []byte) (n int, err error) {
 			if nMore > 0 {
 				incomplete = append(incomplete, more[:nMore]...)
 				// Check if pattern is now complete
-				//nolint:modernize
-				if idx := bytes.IndexByte(incomplete, '}'); idx >= 0 {
+				if found := bytes.Contains(incomplete, []byte{'}'}); found {
 					// Pattern complete, append the rest back to chunk
 					chunk = append(chunk, incomplete...)
 					break

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -623,13 +624,7 @@ func TestAllFields(t *testing.T) {
 	require.Len(t, AllFields, len(expectedFields), "Expected %d fields", len(expectedFields))
 
 	for _, expected := range expectedFields {
-		found := false
-		for _, actual := range AllFields {
-			if actual == expected {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(AllFields, expected)
 		assert.True(t, found, "Expected field %s not found in AllFields", expected)
 	}
 }

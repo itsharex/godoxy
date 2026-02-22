@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yusing/godoxy/internal/proxmox"
 	"github.com/yusing/goutils/apitypes"
+	"github.com/yusing/goutils/http/httpheaders"
 	"github.com/yusing/goutils/http/websocket"
 )
 
@@ -34,6 +35,11 @@ type TailRequest struct {
 // @Failure		500			{object}	apitypes.ErrorResponse	"Internal server error"
 // @Router		/proxmox/tail [get]
 func Tail(c *gin.Context) {
+	if !httpheaders.IsWebsocket(c.Request.Header) {
+		c.JSON(http.StatusBadRequest, apitypes.Error("websocket required"))
+		return
+	}
+
 	var request TailRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, apitypes.Error("invalid request", err))

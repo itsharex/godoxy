@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yusing/godoxy/internal/proxmox"
 	"github.com/yusing/goutils/apitypes"
+	"github.com/yusing/goutils/http/httpheaders"
 	"github.com/yusing/goutils/http/websocket"
 )
 
@@ -15,10 +16,10 @@ import (
 // e.g. ws://localhost:8889/api/v1/proxmox/journalctl/pve/127?service=pveproxy&service=pvedaemon&limit=10
 
 type JournalctlRequest struct {
-	Node     string   `form:"node" uri:"node" binding:"required"`                       // Node name
-	VMID     *int     `form:"vmid" uri:"vmid"`                                          // Container VMID (optional - if not provided, streams node journalctl)
-	Services []string `form:"service" uri:"service"`                                    // Service names
-	Limit    *int     `form:"limit" uri:"limit" default:"100" binding:"min=1,max=1000"` // Limit output lines (1-1000)
+	Node     string   `form:"node" uri:"node" binding:"required"`                                 // Node name
+	VMID     *int     `form:"vmid" uri:"vmid"`                                                    // Container VMID (optional - if not provided, streams node journalctl)
+	Services []string `form:"service" uri:"service"`                                              // Service names
+	Limit    *int     `form:"limit" uri:"limit" default:"100" binding:"omitempty,min=1,max=1000"` // Limit output lines (1-1000)
 } //	@name	ProxmoxJournalctlRequest
 
 // @x-id				"journalctl"
@@ -40,12 +41,21 @@ type JournalctlRequest struct {
 // @Router		/proxmox/journalctl/{node}/{vmid} [get]
 // @Router		/proxmox/journalctl/{node}/{vmid}/{service} [get]
 func Journalctl(c *gin.Context) {
+	if !httpheaders.IsWebsocket(c.Request.Header) {
+		c.JSON(http.StatusBadRequest, apitypes.Error("websocket required"))
+		return
+	}
+
 	var request JournalctlRequest
 	uriErr := c.ShouldBindUri(&request)
 	queryErr := c.ShouldBindQuery(&request)
 	if uriErr != nil && queryErr != nil { // allow both uri and query parameters to be set
 		c.JSON(http.StatusBadRequest, apitypes.Error("invalid request", errors.Join(uriErr, queryErr)))
 		return
+	}
+
+	if request.Limit == nil {
+		request.Limit = new(100)
 	}
 
 	node, ok := proxmox.Nodes.Get(request.Node)

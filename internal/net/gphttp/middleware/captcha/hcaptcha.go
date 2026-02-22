@@ -13,13 +13,14 @@ import (
 
 	"github.com/bytedance/sonic"
 	gperr "github.com/yusing/goutils/errs"
+	strutils "github.com/yusing/goutils/strings"
 )
 
 type HcaptchaProvider struct {
 	ProviderBase
 
-	SiteKey string `json:"site_key" validate:"required"`
-	Secret  string `json:"secret" validate:"required"`
+	SiteKey strutils.Redacted `json:"site_key" validate:"required"`
+	Secret  strutils.Redacted `json:"secret" validate:"required"`
 }
 
 // CSPDirectives returns the CSP directives for the Hcaptcha provider.
@@ -51,10 +52,10 @@ func (p *HcaptchaProvider) Verify(r *http.Request) error {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 	formData := url.Values{}
-	formData.Set("secret", p.Secret)
+	formData.Set("secret", p.Secret.String())
 	formData.Set("response", response)
 	formData.Set("remoteip", remoteIP)
-	formData.Set("sitekey", p.SiteKey)
+	formData.Set("sitekey", p.SiteKey.String())
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.hcaptcha.com/siteverify", bytes.NewBufferString(formData.Encode()))
 	if err != nil {
@@ -92,7 +93,7 @@ func (p *HcaptchaProvider) FormHTML() string {
 	return `
 <div
 	class="h-captcha"
-	data-sitekey="` + p.SiteKey + `"
+	data-sitekey="` + p.SiteKey.String() + `"
 	data-callback="onDataCallback"
 />`
 }

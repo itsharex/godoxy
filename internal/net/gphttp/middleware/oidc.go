@@ -11,14 +11,15 @@ import (
 	"github.com/yusing/godoxy/internal/auth"
 	httpevents "github.com/yusing/goutils/events/http"
 	"github.com/yusing/goutils/http/httpheaders"
+	strutils "github.com/yusing/goutils/strings"
 )
 
 type oidcMiddleware struct {
-	AllowedUsers  []string `json:"allowed_users"`
-	AllowedGroups []string `json:"allowed_groups"`
-	ClientID      string   `json:"client_id"`
-	ClientSecret  string   `json:"client_secret"`
-	Scopes        string   `json:"scopes"`
+	AllowedUsers  []string          `json:"allowed_users"`
+	AllowedGroups []string          `json:"allowed_groups"`
+	ClientID      strutils.Redacted `json:"client_id"`
+	ClientSecret  strutils.Redacted `json:"client_secret"`
+	Scopes        string            `json:"scopes"`
 
 	auth *auth.OIDCProvider
 
@@ -70,8 +71,8 @@ func (amw *oidcMiddleware) initSlow() error {
 		// Use custom client credentials
 		customProvider, err := auth.NewOIDCProviderWithCustomClient(
 			authProvider,
-			amw.ClientID,
-			amw.ClientSecret,
+			amw.ClientID.String(),
+			amw.ClientSecret.String(),
 		)
 		if err != nil {
 			return err

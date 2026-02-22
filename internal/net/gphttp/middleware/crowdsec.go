@@ -15,6 +15,7 @@ import (
 	entrypoint "github.com/yusing/godoxy/internal/entrypoint/types"
 	httputils "github.com/yusing/goutils/http"
 	ioutils "github.com/yusing/goutils/io"
+	strutils "github.com/yusing/goutils/strings"
 )
 
 type (
@@ -23,12 +24,12 @@ type (
 	}
 
 	CrowdsecMiddlewareOpts struct {
-		Route      string        `json:"route" validate:"required"`   // route name (alias) or IP address
-		Port       int           `json:"port"`                        // port number (optional if using route name)
-		APIKey     string        `json:"api_key" validate:"required"` // API key for CrowdSec AppSec (mandatory)
-		Endpoint   string        `json:"endpoint"`                    // default: "/"
-		LogBlocked bool          `json:"log_blocked"`                 // default: false
-		Timeout    time.Duration `json:"timeout"`                     // default: 5 seconds
+		Route      string            `json:"route" validate:"required"`   // route name (alias) or IP address
+		Port       int               `json:"port"`                        // port number (optional if using route name)
+		APIKey     strutils.Redacted `json:"api_key" validate:"required"` // API key for CrowdSec AppSec (mandatory)
+		Endpoint   string            `json:"endpoint"`                    // default: "/"
+		LogBlocked bool              `json:"log_blocked"`                 // default: false
+		Timeout    time.Duration     `json:"timeout"`                     // default: 5 seconds
 
 		httpClient *http.Client
 	}
@@ -119,7 +120,7 @@ func (m *crowdsecMiddleware) before(w http.ResponseWriter, r *http.Request) (pro
 	req.Header.Set("X-Crowdsec-Appsec-Uri", r.URL.RequestURI())
 	req.Header.Set("X-Crowdsec-Appsec-Host", r.Host)
 	req.Header.Set("X-Crowdsec-Appsec-Verb", r.Method)
-	req.Header.Set("X-Crowdsec-Appsec-Api-Key", m.APIKey)
+	req.Header.Set("X-Crowdsec-Appsec-Api-Key", m.APIKey.String())
 	req.Header.Set("X-Crowdsec-Appsec-User-Agent", r.UserAgent())
 	req.Header.Set("X-Crowdsec-Appsec-Http-Version", httpVersion)
 

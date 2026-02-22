@@ -3,6 +3,7 @@ package proxmox
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 	"github.com/luthermonson/go-proxmox"
 )
 
-var ErrNoSession = fmt.Errorf("no session found, make sure username and password are set")
+var ErrNoSession = errors.New("no session found, make sure username and password are set")
 
 // closeTransportConnections forces close idle HTTP connections to prevent goroutine leaks.
 // This is needed because the go-proxmox library's TermWebSocket closer doesn't close

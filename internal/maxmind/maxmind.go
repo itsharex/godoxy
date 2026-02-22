@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -99,7 +100,7 @@ func (cfg *MaxMind) LoadMaxMindDB(parent task.Parent) error {
 
 	if !valid {
 		cfg.Logger().Info().Msg("MaxMind DB not found/invalid, downloading...")
-		if err = cfg.download(); err != nil {
+		if err = cfg.download(parent.Context()); err != nil {
 			return fmt.Errorf("%w: %w", ErrDownloadFailure, err)
 		}
 	} else {
@@ -128,7 +129,7 @@ func (cfg *MaxMind) scheduleUpdate(parent task.Parent) {
 	ticker := time.NewTicker(updateInterval)
 
 	cfg.loadLastUpdate()
-	cfg.update()
+	cfg.update(task.Context())
 
 	defer func() {
 		ticker.Stop()
@@ -143,15 +144,18 @@ func (cfg *MaxMind) scheduleUpdate(parent task.Parent) {
 		case <-task.Context().Done():
 			return
 		case <-ticker.C:
-			cfg.update()
+			cfg.update(task.Context())
 		}
 	}
 }
 
-func (cfg *MaxMind) update() {
+func (cfg *MaxMind) update(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
 	// check for update
 	cfg.Logger().Info().Msg("checking for MaxMind DB update...")
-	remoteLastModified, err := cfg.checkLastest()
+	remoteLastModified, err := cfg.checkLastest(ctx)
 	if err != nil {
 		cfg.Logger().Err(err).Msg("failed to check MaxMind DB update")
 		return
@@ -165,15 +169,15 @@ func (cfg *MaxMind) update() {
 		Time("latest", remoteLastModified.Local()).
 		Time("current", cfg.lastUpdate).
 		Msg("MaxMind DB update available")
-	if err = cfg.download(); err != nil {
+	if err = cfg.download(ctx); err != nil {
 		cfg.Logger().Err(err).Msg("failed to update MaxMind DB")
 		return
 	}
 	cfg.Logger().Info().Msg("MaxMind DB updated")
 }
 
-func (cfg *MaxMind) doReq(method string) (*http.Response, error) {
-	req, err := http.NewRequest(method, cfg.dbURL(), nil)
+func (cfg *MaxMind) doReq(ctx context.Context, method string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, cfg.dbURL(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -185,34 +189,36 @@ func (cfg *MaxMind) doReq(method string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (cfg *MaxMind) checkLastest() (lastModifiedT *time.Time, err error) {
-	resp, err := cfg.doReq(http.MethodHead)
+func (cfg *MaxMind) checkLastest(ctx context.Context) (lastModifiedT time.Time, err error) {
+	resp, err := cfg.doReq(ctx, http.MethodHead)
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %d", ErrResponseNotOK, resp.StatusCode)
+		return time.Time{}, fmt.Errorf("%w: %d", ErrResponseNotOK, resp.StatusCode)
 	}
 
 	lastModified := resp.Header.Get("Last-Modified")
 	if lastModified == "" {
-		cfg.Logger().Warn().Msg("MaxMind responded no last modified time, update skipped")
-		return nil, nil
+		return time.Time{}, nil
 	}
 
 	lastModifiedTime, err := time.Parse(http.TimeFormat, lastModified)
 	if err != nil {
 		cfg.Logger().Warn().Err(err).Msg("MaxMind responded invalid last modified time, update skipped")
-		return nil, err
+		return time.Time{}, err
 	}
 
-	return &lastModifiedTime, nil
+	return lastModifiedTime, nil
 }
 
-func (cfg *MaxMind) download() error {
-	resp, err := cfg.doReq(http.MethodGet)
+func (cfg *MaxMind) download(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
+	resp, err := cfg.doReq(ctx, http.MethodGet)
 	if err != nil {
 		return err
 	}

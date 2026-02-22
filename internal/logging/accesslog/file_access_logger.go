@@ -27,6 +27,9 @@ type (
 	}
 
 	fileAccessLogger struct {
+		RequestFormatter
+		ACLLogFormatter
+
 		task *task.Task
 		cfg  *Config
 
@@ -41,9 +44,6 @@ type (
 		errRateLimiter *rate.Limiter
 
 		logger zerolog.Logger
-
-		RequestFormatter
-		ACLLogFormatter
 	}
 )
 

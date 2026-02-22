@@ -62,6 +62,6 @@ func DebugHandler(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 	default:
-		w.writeLoadingPage(rw)
+		_ = w.writeLoadingPage(rw)
 	}
 }

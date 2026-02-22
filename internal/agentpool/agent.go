@@ -34,7 +34,10 @@ func newAgent(cfg *agent.AgentConfig) *Agent {
 				if addr != agent.AgentHost+":443" {
 					return nil, &net.AddrError{Err: "invalid address", Addr: addr}
 				}
-				return net.DialTimeout("tcp", cfg.Addr, timeout)
+				dialer := &net.Dialer{
+					Timeout: timeout,
+				}
+				return dialer.Dial("tcp", cfg.Addr)
 			},
 			TLSConfig:                     cfg.TLSConfig(),
 			ReadTimeout:                   5 * time.Second,

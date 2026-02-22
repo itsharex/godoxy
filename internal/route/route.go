@@ -372,6 +372,9 @@ func (r *Route) validateRules() error {
 				r.Rules = rules
 			}
 		case "file", "":
+			if !strutils.IsValidFilename(src.Path) {
+				return fmt.Errorf("invalid rule file path %q", src.Path)
+			}
 			content, err := os.ReadFile(src.Path)
 			if err != nil {
 				return fmt.Errorf("failed to read rule file %q: %w", src.Path, err)

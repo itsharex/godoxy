@@ -32,6 +32,8 @@ import (
 )
 
 type (
+	Config = types.IdlewatcherConfig
+
 	routeHelper struct {
 		route  types.Route
 		rp     *reverseproxy.ReverseProxy
@@ -52,7 +54,7 @@ type (
 
 		l zerolog.Logger
 
-		cfg *types.IdlewatcherConfig
+		cfg *Config
 
 		provider synk.Value[idlewatcher.Provider]
 
@@ -104,7 +106,7 @@ const reqTimeout = 3 * time.Second
 // prevents dependencies from being stopped automatically.
 const neverTick = time.Duration(1<<63 - 1)
 
-func NewWatcher(parent task.Parent, r types.Route, cfg *types.IdlewatcherConfig) (*Watcher, error) {
+func NewWatcher(parent task.Parent, r types.Route, cfg *Config) (*Watcher, error) {
 	key := cfg.Key()
 
 	watcherMapMu.RLock()
@@ -193,7 +195,7 @@ func NewWatcher(parent task.Parent, r types.Route, cfg *types.IdlewatcherConfig)
 
 		depCfg := depRoute.IdlewatcherConfig()
 		if depCfg == nil {
-			depCfg = new(types.IdlewatcherConfig)
+			depCfg = new(Config)
 			depCfg.IdlewatcherConfigBase = cfg.IdlewatcherConfigBase
 			depCfg.IdleTimeout = neverTick // disable auto sleep for dependencies
 		} else if depCfg.IdleTimeout > 0 && depCfg.IdleTimeout != neverTick {

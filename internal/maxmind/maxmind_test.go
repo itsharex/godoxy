@@ -72,7 +72,7 @@ func mockMaxMindDBOpen(t *testing.T) {
 func Test_MaxMindConfig_doReq(t *testing.T) {
 	cfg := testCfg()
 	mockDoReq(t, cfg)
-	resp, err := cfg.doReq(http.MethodGet)
+	resp, err := cfg.doReq(t.Context(), http.MethodGet)
 	if err != nil {
 		t.Fatalf("newReq() error = %v", err)
 	}
@@ -85,7 +85,7 @@ func Test_MaxMindConfig_checkLatest(t *testing.T) {
 	cfg := testCfg()
 	mockDoReq(t, cfg)
 
-	latest, err := cfg.checkLastest()
+	latest, err := cfg.checkLastest(t.Context())
 	if err != nil {
 		t.Fatalf("checkLatest() error = %v", err)
 	}
@@ -100,7 +100,7 @@ func Test_MaxMindConfig_download(t *testing.T) {
 	mockMaxMindDBOpen(t)
 	mockDoReq(t, cfg)
 
-	err := cfg.download()
+	err := cfg.download(t.Context())
 	if err != nil {
 		t.Fatalf("download() error = %v", err)
 	}

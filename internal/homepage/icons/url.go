@@ -106,21 +106,21 @@ func (u *URL) Parse(v string) error {
 
 func (u *URL) parse(v string, checkExists bool) error {
 	if v == "" {
-		return ErrInvalidIconURL
+		return gperr.PrependSubject(ErrInvalidIconURL, "empty url")
 	}
 	slashIndex := strings.Index(v, "/")
 	if slashIndex == -1 {
-		return ErrInvalidIconURL
+		return gperr.PrependSubject(ErrInvalidIconURL, v)
 	}
 	beforeSlash := v[:slashIndex]
 	switch beforeSlash {
 	case "http:", "https:":
 		u.FullURL = &v
 		u.Source = SourceAbsolute
-	case "@target", "": // @target/favicon.ico, /favicon.ico
+	case "@target", "": //	@target/favicon.ico,	/favicon.ico
 		url := v[slashIndex:]
 		if url == "/" {
-			return fmt.Errorf("%w: empty path", ErrInvalidIconURL)
+			return gperr.PrependSubject(ErrInvalidIconURL, v).Withf("%s", "empty path")
 		}
 		u.FullURL = &url
 		u.Source = SourceRelative
@@ -132,16 +132,16 @@ func (u *URL) parse(v string, checkExists bool) error {
 		}
 		parts := strings.Split(v[slashIndex+1:], ".")
 		if len(parts) != 2 {
-			return fmt.Errorf("%w: expect %s/<reference>.<format>, e.g. %s/adguard-home.webp", ErrInvalidIconURL, beforeSlash, beforeSlash)
+			return gperr.PrependSubject(ErrInvalidIconURL, v).Withf("expect %s/<reference>.<format>, e.g. %s/adguard-home.webp", beforeSlash, beforeSlash)
 		}
 		reference, format := parts[0], strings.ToLower(parts[1])
 		if reference == "" || format == "" {
-			return ErrInvalidIconURL
+			return gperr.PrependSubject(ErrInvalidIconURL, v).Withf("empty reference or format")
 		}
 		switch format {
 		case "svg", "png", "webp":
 		default:
-			return fmt.Errorf("%w: invalid image format, expect svg/png/webp", ErrInvalidIconURL)
+			return gperr.PrependSubject(ErrInvalidIconURL, v).Withf("invalid image format, expect svg/png/webp")
 		}
 		isLight, isDark := false, false
 		if strings.HasSuffix(reference, "-light") {
@@ -159,7 +159,7 @@ func (u *URL) parse(v string, checkExists bool) error {
 			IsDark:   isDark,
 		}
 		if checkExists && !u.HasIcon() {
-			return fmt.Errorf("%w: no such icon %s.%s from %s", ErrInvalidIconURL, reference, format, u.Source)
+			return gperr.PrependSubject(ErrInvalidIconURL, v).Withf("no such icon from %s", u.Source)
 		}
 	default:
 		return gperr.PrependSubject(ErrInvalidIconURL, v)

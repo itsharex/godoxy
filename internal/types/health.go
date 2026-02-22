@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	//nolint:recvcheck
 	HealthStatus       uint8  // @name	HealthStatus
 	HealthStatusString string // @name	HealthStatusString
 
@@ -83,6 +84,7 @@ type (
 
 	HealthInfo struct {
 		HealthInfoWithoutDetail
+
 		Detail string `json:"detail"`
 	} // @name HealthInfo
 )

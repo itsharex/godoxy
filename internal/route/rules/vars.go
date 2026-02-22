@@ -39,7 +39,7 @@ func NeedExpandVars(s string) bool {
 var (
 	voidResponseModifier = httputils.NewResponseModifier(httptest.NewRecorder())
 	dummyRequest         = http.Request{
-		Method: "GET",
+		Method: http.MethodGet,
 		URL:    &url.URL{Path: "/"},
 		Header: http.Header{},
 	}

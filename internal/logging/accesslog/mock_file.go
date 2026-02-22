@@ -36,9 +36,9 @@ func (m *MockFile) Len() int64 {
 
 func (m *MockFile) Content() []byte {
 	buf := bytes.NewBuffer(nil)
-	m.Seek(0, io.SeekStart)
+	_, _ = m.Seek(0, io.SeekStart)
 	_, _ = buf.ReadFrom(m.File)
-	m.Seek(0, io.SeekStart)
+	_, _ = m.Seek(0, io.SeekStart)
 	return buf.Bytes()
 }
 

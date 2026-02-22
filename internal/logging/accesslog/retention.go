@@ -10,9 +10,9 @@ import (
 )
 
 type Retention struct {
-	Days     uint64 `json:"days,omitempty"`
-	Last     uint64 `json:"last,omitempty"`
-	KeepSize uint64 `json:"keep_size,omitempty"`
+	Days     int64 `json:"days,omitempty" validate:"min=0"`
+	Last     int64 `json:"last,omitempty" validate:"min=0"`
+	KeepSize int64 `json:"keep_size,omitempty" validate:"min=0"`
 } // @name LogRetention
 
 var (
@@ -39,9 +39,9 @@ func (r *Retention) Parse(v string) (err error) {
 	}
 	switch split[0] {
 	case "last":
-		r.Last, err = strconv.ParseUint(split[1], 10, 64)
+		r.Last, err = strconv.ParseInt(split[1], 10, 64)
 	default: // <N> days|weeks|months
-		n, err := strconv.ParseUint(split[0], 10, 64)
+		n, err := strconv.ParseInt(split[0], 10, 64)
 		if err != nil {
 			return err
 		}

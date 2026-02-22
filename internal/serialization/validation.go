@@ -41,19 +41,17 @@ func ValidateWithCustomValidator(v reflect.Value) error {
 		if elemType.Implements(validatorType) {
 			return v.Elem().Interface().(CustomValidator).Validate()
 		}
-	} else {
-		if vt.PkgPath() != "" { // not a builtin type
-			// prioritize pointer method
-			if v.CanAddr() {
-				vAddr := v.Addr()
-				if vAddr.Type().Implements(validatorType) {
-					return vAddr.Interface().(CustomValidator).Validate()
-				}
+	} else if vt.PkgPath() != "" { // not a builtin type
+		// prioritize pointer method
+		if v.CanAddr() {
+			vAddr := v.Addr()
+			if vAddr.Type().Implements(validatorType) {
+				return vAddr.Interface().(CustomValidator).Validate()
 			}
-			// fallback to value method
-			if vt.Implements(validatorType) {
-				return v.Interface().(CustomValidator).Validate()
-			}
+		}
+		// fallback to value method
+		if vt.Implements(validatorType) {
+			return v.Interface().(CustomValidator).Validate()
 		}
 	}
 	return nil

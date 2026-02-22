@@ -3,6 +3,7 @@ package uptime
 import (
 	"context"
 	"errors"
+	"math"
 	"net/url"
 	"slices"
 	"time"
@@ -70,7 +71,7 @@ func aggregateStatuses(entries []StatusByAlias, query url.Values) (int, Aggregat
 		for alias, status := range entry.Map {
 			statuses[alias] = append(statuses[alias], Status{
 				Status:    status.Status,
-				Latency:   int32(status.Latency.Milliseconds()),
+				Latency:   int32(min(math.MaxInt32, status.Latency.Milliseconds())), //nolint:gosec
 				Timestamp: entry.Timestamp,
 			})
 		}
@@ -134,7 +135,6 @@ func (rs RouteStatuses) aggregate(limit int, offset int) Aggregated {
 
 		status := types.StatusUnknown
 		if state := config.ActiveState.Load(); state != nil {
-			// FIXME: pass ctx to getRoute
 			r, ok := entrypoint.FromCtx(state.Context()).GetRoute(alias)
 			if ok {
 				mon := r.HealthMonitor()

@@ -8,7 +8,7 @@ import (
 )
 
 type roundRobin struct {
-	index atomic.Uint32
+	index atomic.Uint64
 }
 
 var _ impl = (*roundRobin)(nil)
@@ -21,6 +21,6 @@ func (lb *roundRobin) ChooseServer(srvs types.LoadBalancerServers, r *http.Reque
 	if len(srvs) == 0 {
 		return nil
 	}
-	index := (lb.index.Add(1) - 1) % uint32(len(srvs))
+	index := (lb.index.Add(1) - 1) % uint64(len(srvs))
 	return srvs[index]
 }

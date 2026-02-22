@@ -2,6 +2,7 @@ package qbittorrent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,18 +10,29 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/yusing/godoxy/internal/homepage/widgets"
+	strutils "github.com/yusing/goutils/strings"
 )
 
 type Client struct {
 	URL      string
 	Username string
-	Password string
+	Password strutils.Redacted
 }
 
 func (c *Client) Initialize(ctx context.Context, url string, cfg map[string]any) error {
 	c.URL = url
-	c.Username = cfg["username"].(string)
-	c.Password = cfg["password"].(string)
+
+	username, ok := cfg["username"].(string)
+	if !ok {
+		return errors.New("username is not a string")
+	}
+	c.Username = username
+
+	password, ok := cfg["password"].(string)
+	if !ok {
+		return errors.New("password is not a string")
+	}
+	c.Password = strutils.Redacted(password)
 
 	_, err := c.Version(ctx)
 	if err != nil {
@@ -37,7 +49,7 @@ func (c *Client) doRequest(ctx context.Context, method, endpoint string, query u
 	}
 
 	if c.Username != "" && c.Password != "" {
-		req.SetBasicAuth(c.Username, c.Password)
+		req.SetBasicAuth(c.Username, c.Password.String())
 	}
 
 	resp, err := widgets.HTTPClient.Do(req)

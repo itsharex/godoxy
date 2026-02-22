@@ -6,7 +6,7 @@ import (
 
 type ContextKey struct{}
 
-func SetCtx(ctx interface{ SetValue(any, any) }, ep Entrypoint) {
+func SetCtx(ctx interface{ SetValue(key any, value any) }, ep Entrypoint) {
 	ctx.SetValue(ContextKey{}, ep)
 }
 

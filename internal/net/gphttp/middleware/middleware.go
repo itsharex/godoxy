@@ -34,11 +34,11 @@ type (
 	}
 
 	Middleware struct {
+		commonOptions
+
 		name      string
 		construct ImplNewFunc
 		impl      any
-
-		commonOptions
 	}
 	ByPriority []*Middleware
 
@@ -196,7 +196,12 @@ func (m *Middleware) ServeHTTP(next http.HandlerFunc, w http.ResponseWriter, r *
 
 	if exec, ok := m.impl.(ResponseModifier); ok {
 		lrm := httputils.NewLazyResponseModifier(w, needsBuffering)
-		defer lrm.FlushRelease()
+		defer func() {
+			_, err := lrm.FlushRelease()
+			if err != nil {
+				m.LogError(r).Err(err).Msg("failed to flush response")
+			}
+		}()
 		next(lrm, r)
 
 		// Skip modification if response wasn't buffered (non-HTML content)
@@ -225,7 +230,9 @@ func (m *Middleware) ServeHTTP(next http.HandlerFunc, w http.ResponseWriter, r *
 
 		// override the content length and body if changed
 		if currentResp.Body != currentBody {
-			rm.SetBody(currentResp.Body)
+			if err := rm.SetBody(currentResp.Body); err != nil {
+				m.LogError(r).Err(err).Msg("failed to set response body")
+			}
 		}
 	} else {
 		next(w, r)
@@ -239,12 +246,14 @@ func needsBuffering(header http.Header) bool {
 }
 
 func (m *Middleware) LogWarn(req *http.Request) *zerolog.Event {
+	//nolint:zerologlint
 	return log.Warn().Str("middleware", m.name).
 		Str("host", req.Host).
 		Str("path", req.URL.Path)
 }
 
 func (m *Middleware) LogError(req *http.Request) *zerolog.Event {
+	//nolint:zerologlint
 	return log.Error().Str("middleware", m.name).
 		Str("host", req.Host).
 		Str("path", req.URL.Path)

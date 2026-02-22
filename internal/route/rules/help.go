@@ -125,7 +125,7 @@ func helpVar(varExpr string) string {
 }
 
 /*
-Generate help string as error, e.g.
+Error generates help string as error, e.g.
 
 	rewrite <from> <to>
 		from: the path to rewrite, must start with /

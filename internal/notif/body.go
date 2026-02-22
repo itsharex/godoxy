@@ -20,6 +20,7 @@ type (
 )
 
 type (
+	//nolint:recvcheck
 	FieldsBody       []LogField
 	ListBody         []string
 	MessageBody      string
@@ -106,6 +107,7 @@ func (m MessageBodyBytes) Format(format LogFormat) ([]byte, error) {
 	switch format {
 	case LogFormatRawJSON:
 		return sonic.Marshal(string(m))
+	default:
 	}
 	return m, nil
 }

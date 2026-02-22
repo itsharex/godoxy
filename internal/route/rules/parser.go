@@ -158,13 +158,14 @@ func parse(v string) (subject string, args []string, err error) {
 		buf.WriteRune('$')
 	}
 
-	if quote != 0 {
+	switch {
+	case quote != 0:
 		err = ErrUnterminatedQuotes
-	} else if brackets != 0 {
+	case brackets != 0:
 		err = ErrUnterminatedBrackets
-	} else if inEnvVar {
+	case inEnvVar:
 		err = ErrUnterminatedEnvVar
-	} else {
+	default:
 		flush(false)
 	}
 	if len(missingEnvVars) > 0 {

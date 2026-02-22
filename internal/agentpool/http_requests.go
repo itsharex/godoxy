@@ -10,24 +10,24 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
 	"github.com/valyala/fasthttp"
-	"github.com/yusing/godoxy/agent/pkg/agent"
+	agentPkg "github.com/yusing/godoxy/agent/pkg/agent"
 	"github.com/yusing/goutils/http/reverseproxy"
 )
 
-func (cfg *Agent) Do(ctx context.Context, method, endpoint string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, method, agent.APIBaseURL+endpoint, body)
+func (agent *Agent) Do(ctx context.Context, method, endpoint string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, agentPkg.APIBaseURL+endpoint, body)
 	if err != nil {
 		return nil, err
 	}
-	return cfg.httpClient.Do(req)
+	return agent.httpClient.Do(req)
 }
 
-func (cfg *Agent) Forward(req *http.Request, endpoint string) (*http.Response, error) {
-	req.URL.Host = agent.AgentHost
+func (agent *Agent) Forward(req *http.Request, endpoint string) (*http.Response, error) {
+	req.URL.Host = agentPkg.AgentHost
 	req.URL.Scheme = "https"
-	req.URL.Path = agent.APIEndpointBase + endpoint
+	req.URL.Path = agentPkg.APIEndpointBase + endpoint
 	req.RequestURI = ""
-	resp, err := cfg.httpClient.Do(req)
+	resp, err := agent.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -40,20 +40,20 @@ type HealthCheckResponse struct {
 	Latency time.Duration `json:"latency"`
 }
 
-func (cfg *Agent) DoHealthCheck(timeout time.Duration, query string) (ret HealthCheckResponse, err error) {
+func (agent *Agent) DoHealthCheck(timeout time.Duration, query string) (ret HealthCheckResponse, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	req.SetRequestURI(agent.APIBaseURL + agent.EndpointHealth + "?" + query)
+	req.SetRequestURI(agentPkg.APIBaseURL + agentPkg.EndpointHealth + "?" + query)
 	req.Header.SetMethod(fasthttp.MethodGet)
 	req.Header.Set("Accept-Encoding", "identity")
 	req.SetConnectionClose()
 
 	start := time.Now()
-	err = cfg.fasthttpHcClient.DoTimeout(req, resp, timeout)
+	err = agent.fasthttpHcClient.DoTimeout(req, resp, timeout)
 	ret.Latency = time.Since(start)
 	if err != nil {
 		return ret, err
@@ -71,14 +71,14 @@ func (cfg *Agent) DoHealthCheck(timeout time.Duration, query string) (ret Health
 	return ret, nil
 }
 
-func (cfg *Agent) Websocket(ctx context.Context, endpoint string) (*websocket.Conn, *http.Response, error) {
-	transport := cfg.Transport()
+func (agent *Agent) Websocket(ctx context.Context, endpoint string) (*websocket.Conn, *http.Response, error) {
+	transport := agent.Transport()
 	dialer := websocket.Dialer{
 		NetDialContext:    transport.DialContext,
 		NetDialTLSContext: transport.DialTLSContext,
 	}
-	return dialer.DialContext(ctx, agent.APIBaseURL+endpoint, http.Header{
-		"Host": {agent.AgentHost},
+	return dialer.DialContext(ctx, agentPkg.APIBaseURL+endpoint, http.Header{
+		"Host": {agentPkg.AgentHost},
 	})
 }
 
@@ -86,9 +86,9 @@ func (cfg *Agent) Websocket(ctx context.Context, endpoint string) (*websocket.Co
 //
 // It will create a new request with the same context, method, and body, but with the agent host and scheme, and the endpoint
 // If the request has a query, it will be added to the proxy request's URL
-func (cfg *Agent) ReverseProxy(w http.ResponseWriter, req *http.Request, endpoint string) {
-	rp := reverseproxy.NewReverseProxy("agent", agent.AgentURL, cfg.Transport())
-	req.URL.Host = agent.AgentHost
+func (agent *Agent) ReverseProxy(w http.ResponseWriter, req *http.Request, endpoint string) {
+	rp := reverseproxy.NewReverseProxy("agent", agentPkg.AgentURL, agent.Transport())
+	req.URL.Host = agentPkg.AgentHost
 	req.URL.Scheme = "https"
 	req.URL.Path = endpoint
 	req.RequestURI = ""

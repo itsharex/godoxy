@@ -27,7 +27,6 @@ type HTTPConfig struct {
 
 // BuildTLSConfig creates a TLS configuration based on the HTTP config options.
 func (cfg *HTTPConfig) BuildTLSConfig(targetURL *url.URL) (*tls.Config, error) {
-	//nolint:gosec
 	tlsConfig := &tls.Config{}
 
 	// Handle InsecureSkipVerify (legacy NoTLSVerify option)

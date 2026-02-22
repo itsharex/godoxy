@@ -17,16 +17,19 @@ type (
 	} // @name AccessLoggerConfigBase
 	ACLLoggerConfig struct {
 		ConfigBase
+
 		LogAllowed bool `json:"log_allowed"`
 	} // @name ACLLoggerConfig
 	RequestLoggerConfig struct {
 		ConfigBase
+
 		Format  Format  `json:"format" validate:"oneof=common combined json"`
 		Filters Filters `json:"filters"`
 		Fields  Fields  `json:"fields"`
 	} // @name RequestLoggerConfig
 	Config struct {
 		ConfigBase
+
 		acl *ACLLoggerConfig
 		req *RequestLoggerConfig
 	}

@@ -9,10 +9,10 @@ import (
 	"github.com/yusing/goutils/task"
 )
 
-func NewStartedTestRoute(t testing.TB, base *Route) (types.Route, error) {
-	t.Helper()
+func NewStartedTestRoute(tb testing.TB, base *Route) (types.Route, error) {
+	tb.Helper()
 
-	task := task.GetTestTask(t)
+	task := task.GetTestTask(tb)
 	if ep := epctx.FromCtx(task.Context()); ep == nil {
 		ep = entrypoint.NewEntrypoint(task, nil)
 		epctx.SetCtx(task, ep)

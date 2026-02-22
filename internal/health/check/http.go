@@ -30,7 +30,7 @@ var pinger = &fasthttp.Client{
 	DisableHeaderNamesNormalizing: true,
 	DisablePathNormalizing:        true,
 	TLSConfig: &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: true, //nolint:gosec
 	},
 	MaxConnsPerHost:          1000,
 	NoDefaultUserAgentHeader: true,
@@ -52,7 +52,7 @@ func HTTP(url *url.URL, method, path string, timeout time.Duration) (types.Healt
 	respErr := pinger.DoTimeout(req, resp, timeout)
 	lat := time.Since(start)
 
-	return processHealthResponse(lat, respErr, resp.StatusCode)
+	return processHealthResponse(lat, respErr, resp.StatusCode), nil
 }
 
 func H2C(ctx context.Context, url *url.URL, method, path string, timeout time.Duration) (types.HealthCheckResult, error) {
@@ -88,7 +88,7 @@ func H2C(ctx context.Context, url *url.URL, method, path string, timeout time.Du
 		defer resp.Body.Close()
 	}
 
-	return processHealthResponse(lat, err, func() int { return resp.StatusCode })
+	return processHealthResponse(lat, err, func() int { return resp.StatusCode }), nil
 }
 
 var userAgent = "GoDoxy/" + version.Get().String()
@@ -101,20 +101,20 @@ func setCommonHeaders(setHeader func(key, value string)) {
 	setHeader("Pragma", "no-cache")
 }
 
-func processHealthResponse(lat time.Duration, err error, getStatusCode func() int) (types.HealthCheckResult, error) {
+func processHealthResponse(lat time.Duration, err error, getStatusCode func() int) types.HealthCheckResult {
 	if err != nil {
 		var tlsErr *tls.CertificateVerificationError
 		if ok := errors.As(err, &tlsErr); !ok {
 			return types.HealthCheckResult{
 				Latency: lat,
 				Detail:  err.Error(),
-			}, nil
+			}
 		}
 		return types.HealthCheckResult{
 			Latency: lat,
 			Healthy: true,
 			Detail:  tlsErr.Error(),
-		}, nil
+		}
 	}
 
 	statusCode := getStatusCode()
@@ -122,11 +122,11 @@ func processHealthResponse(lat time.Duration, err error, getStatusCode func() in
 		return types.HealthCheckResult{
 			Latency: lat,
 			Detail:  http.StatusText(statusCode),
-		}, nil
+		}
 	}
 
 	return types.HealthCheckResult{
 		Latency: lat,
 		Healthy: true,
-	}, nil
+	}
 }

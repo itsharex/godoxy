@@ -2,6 +2,7 @@ package route
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	entrypoint "github.com/yusing/godoxy/internal/entrypoint/types"
@@ -17,7 +18,7 @@ func checkExists(ctx context.Context, r types.Route) error {
 	}
 	ep := entrypoint.FromCtx(ctx)
 	if ep == nil {
-		return fmt.Errorf("entrypoint not found in context")
+		return errors.New("entrypoint not found in context")
 	}
 	var (
 		existing types.Route

@@ -51,19 +51,6 @@ const (
 	SystemInfoAggregateModeSensorTemperature  SystemInfoAggregateMode = "sensor_temperature"   // @name SystemInfoAggregateModeSensorTemperature
 )
 
-var allQueries = []SystemInfoAggregateMode{
-	SystemInfoAggregateModeCPUAverage,
-	SystemInfoAggregateModeMemoryUsage,
-	SystemInfoAggregateModeMemoryUsagePercent,
-	SystemInfoAggregateModeDisksReadSpeed,
-	SystemInfoAggregateModeDisksWriteSpeed,
-	SystemInfoAggregateModeDisksIOPS,
-	SystemInfoAggregateModeDiskUsage,
-	SystemInfoAggregateModeNetworkSpeed,
-	SystemInfoAggregateModeNetworkTransfer,
-	SystemInfoAggregateModeSensorTemperature,
-}
-
 var Poller = period.NewPoller("system_info", getSystemInfo, aggregate)
 
 func isNoDataAvailable(err error) bool {

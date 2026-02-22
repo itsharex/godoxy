@@ -85,7 +85,7 @@ func rotateLogFileByPolicy(file supportRotate, config *Retention, result *Rotate
 
 	switch {
 	case config.Last > 0:
-		shouldStop = func() bool { return result.NumLinesKeep-result.NumLinesInvalid == int(config.Last) }
+		shouldStop = func() bool { return int64(result.NumLinesKeep-result.NumLinesInvalid) == config.Last }
 		// not needed to parse time for last N lines
 	case config.Days > 0:
 		cutoff := mockable.TimeNow().AddDate(0, 0, -int(config.Days)+1)
@@ -227,7 +227,7 @@ func rotateLogFileBySize(file supportRotate, config *Retention, result *RotateRe
 
 	result.OriginalSize = fileSize
 
-	keepSize := int64(config.KeepSize)
+	keepSize := config.KeepSize
 	if keepSize >= fileSize {
 		result.NumBytesKeep = fileSize
 		return false, nil

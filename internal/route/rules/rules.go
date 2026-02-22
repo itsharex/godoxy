@@ -286,8 +286,7 @@ func logError(err error, r *http.Request) {
 	var h2Err http2.StreamError
 	if errors.As(err, &h2Err) {
 		// ignore these errors
-		switch h2Err.Code {
-		case http2.ErrCodeStreamClosed:
+		if h2Err.Code == http2.ErrCodeStreamClosed {
 			return
 		}
 	}

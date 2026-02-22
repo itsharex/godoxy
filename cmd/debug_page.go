@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"github.com/yusing/godoxy/internal/api"
 	apiV1 "github.com/yusing/godoxy/internal/api/v1"
 	agentApi "github.com/yusing/godoxy/internal/api/v1/agent"
@@ -128,25 +129,31 @@ func listenDebugServer() {
 	mux.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/svg+xml")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" text-anchor="middle" dominant-baseline="middle">🐙</text></svg>`))
+		fmt.Fprint(w, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" text-anchor="middle" dominant-baseline="middle">🐙</text></svg>`)
 	})
 
 	mux.HandleFunc("Auth block page", "GET", "/auth/block", AuthBlockPageHandler)
 	mux.HandleFunc("Idlewatcher loading page", "GET", idlewatcherTypes.PathPrefix, idlewatcher.DebugHandler)
-	apiHandler := newApiHandler(mux)
+	apiHandler := newAPIHandler(mux)
 	mux.mux.HandleFunc("/api/v1/", apiHandler.ServeHTTP)
 
 	mux.Finalize()
 
-	go http.ListenAndServe(":7777", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Pragma", "no-cache")
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Expires", "0")
-		mux.mux.ServeHTTP(w, r)
-	}))
+	go func() {
+		//nolint:gosec
+		err := http.ListenAndServe(":7777", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Expires", "0")
+			mux.mux.ServeHTTP(w, r)
+		}))
+		if err != nil {
+			log.Err(err).Msg("Error starting debug server")
+		}
+	}()
 }
 
-func newApiHandler(debugMux *debugMux) *gin.Engine {
+func newAPIHandler(debugMux *debugMux) *gin.Engine {
 	r := gin.New()
 	r.Use(api.ErrorHandler())
 	r.Use(api.ErrorLoggingMiddleware())

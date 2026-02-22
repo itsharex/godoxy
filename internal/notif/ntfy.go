@@ -7,6 +7,8 @@ import (
 	gperr "github.com/yusing/goutils/errs"
 )
 
+// Ntfy is a provider for ntfy.
+//
 // See https://docs.ntfy.sh/publish
 type Ntfy struct {
 	ProviderBase

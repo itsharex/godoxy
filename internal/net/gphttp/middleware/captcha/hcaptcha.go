@@ -22,12 +22,14 @@ type HcaptchaProvider struct {
 	Secret  string `json:"secret" validate:"required"`
 }
 
-// https://docs.hcaptcha.com/#content-security-policy-settings
+// CSPDirectives returns the CSP directives for the Hcaptcha provider.
+// See: https://docs.hcaptcha.com/#content-security-policy-settings
 func (p *HcaptchaProvider) CSPDirectives() []string {
 	return []string{"script-src", "frame-src", "style-src", "connect-src"}
 }
 
-// https://docs.hcaptcha.com/#content-security-policy-settings
+// CSPSources returns the CSP sources for the Hcaptcha provider.
+// See: https://docs.hcaptcha.com/#content-security-policy-settings
 func (p *HcaptchaProvider) CSPSources() []string {
 	return []string{
 		"https://hcaptcha.com",

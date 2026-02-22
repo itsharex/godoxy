@@ -123,6 +123,18 @@ func TestSerialize(t *testing.T) {
 	for i := range 5 {
 		entries[i] = testInfo
 	}
+	var allQueries = []SystemInfoAggregateMode{
+		SystemInfoAggregateModeCPUAverage,
+		SystemInfoAggregateModeMemoryUsage,
+		SystemInfoAggregateModeMemoryUsagePercent,
+		SystemInfoAggregateModeDisksReadSpeed,
+		SystemInfoAggregateModeDisksWriteSpeed,
+		SystemInfoAggregateModeDisksIOPS,
+		SystemInfoAggregateModeDiskUsage,
+		SystemInfoAggregateModeNetworkSpeed,
+		SystemInfoAggregateModeNetworkTransfer,
+		SystemInfoAggregateModeSensorTemperature,
+	}
 	for _, query := range allQueries {
 		t.Run(string(query), func(t *testing.T) {
 			_, result := aggregate(entries, url.Values{"aggregate": []string{string(query)}})

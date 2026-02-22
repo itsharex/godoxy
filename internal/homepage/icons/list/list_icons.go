@@ -263,6 +263,8 @@ func httpGetImpl(url string) ([]byte, func([]byte), error) {
 }
 
 /*
+	UpdateWalkxCodeIcons updates the icon map with the icons from walkxcode.
+
 format:
 
 	{

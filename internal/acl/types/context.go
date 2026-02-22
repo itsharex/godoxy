@@ -4,7 +4,7 @@ import "context"
 
 type ContextKey struct{}
 
-func SetCtx(ctx interface{ SetValue(any, any) }, acl ACL) {
+func SetCtx(ctx interface{ SetValue(key any, value any) }, acl ACL) {
 	ctx.SetValue(ContextKey{}, acl)
 }
 

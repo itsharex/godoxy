@@ -8,6 +8,7 @@ import (
 	gperr "github.com/yusing/goutils/errs"
 )
 
+//nolint:recvcheck
 type Scheme uint8
 
 var ErrInvalidScheme = errors.New("invalid scheme")

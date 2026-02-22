@@ -15,7 +15,7 @@ import (
 
 type RouteType route.Route // @name Route
 
-// @x-id				"routes"
+// @x-id				"list"
 // @BasePath		/api/v1
 // @Summary		List routes
 // @Description	List routes

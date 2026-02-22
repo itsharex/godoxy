@@ -767,10 +767,13 @@ definitions:
   LogRetention:
     properties:
       days:
+        minimum: 0
         type: integer
       keep_size:
+        minimum: 0
         type: integer
       last:
+        minimum: 0
         type: integer
     type: object
   MetricsPeriod:
@@ -1690,8 +1693,10 @@ definitions:
       free:
         type: integer
       fstype:
+        description: interned
         type: string
       path:
+        description: interned
         type: string
       total:
         type: number
@@ -1832,11 +1837,11 @@ definitions:
         type: string
       kernel_version:
         type: string
+      load_avg_5m:
+        type: string
       load_avg_15m:
         type: string
       load_avg_1m:
-        type: string
-      load_avg_5m:
         type: string
       mem_pct:
         type: string
@@ -1886,6 +1891,7 @@ definitions:
       high:
         type: number
       name:
+        description: interned
         type: string
       temperature:
         type: number
@@ -3932,7 +3938,7 @@ paths:
       tags:
       - route
       - websocket
-      x-id: routes
+      x-id: list
   /route/playground:
     post:
       consumes:

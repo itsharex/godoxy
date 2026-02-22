@@ -3,10 +3,12 @@ package iconfetch
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
 	"math"
+	"mime"
 	"net/http"
 	"net/url"
 	"slices"
@@ -17,7 +19,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vincent-petithory/dataurl"
 	"github.com/yusing/godoxy/internal/homepage/icons"
-	gphttp "github.com/yusing/godoxy/internal/net/gphttp"
 	apitypes "github.com/yusing/goutils/apitypes"
 	"github.com/yusing/goutils/cache"
 	httputils "github.com/yusing/goutils/http"
@@ -76,24 +77,40 @@ func FetchFavIconFromURL(ctx context.Context, iconURL *icons.URL) (Result, error
 	return FetchResultWithErrorf(http.StatusBadRequest, "invalid icon source")
 }
 
+var fetchIconClient = http.Client{
+	Timeout: faviconFetchTimeout,
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true, //nolint:gosec
+		},
+	},
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	},
+}
+
 var FetchIconAbsolute = cache.NewKeyFunc(func(ctx context.Context, url string) (Result, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return FetchResultWithErrorf(http.StatusInternalServerError, "cannot create request: %w", err)
 	}
 
-	resp, err := gphttp.Do(req)
-	if err == nil {
-		defer resp.Body.Close()
-	} else {
+	resp, err := fetchIconClient.Do(req)
+	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 			return FetchResultWithErrorf(http.StatusBadGateway, "request timeout")
 		}
 		return FetchResultWithErrorf(http.StatusBadGateway, "connection error: %w", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return FetchResultWithErrorf(resp.StatusCode, "upstream error: http %d", resp.StatusCode)
+	}
+
+	ct, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if ct != "" && !strings.HasPrefix(ct, "image/") {
+		return FetchResultWithErrorf(http.StatusNotFound, "not an image")
 	}
 
 	icon, err := io.ReadAll(resp.Body)
@@ -105,10 +122,15 @@ var FetchIconAbsolute = cache.NewKeyFunc(func(ctx context.Context, url string) (
 		return FetchResultWithErrorf(http.StatusNotFound, "empty icon")
 	}
 
-	res := Result{Icon: icon}
-	if contentType := resp.Header.Get("Content-Type"); contentType != "" {
-		res.contentType = contentType
+	if ct == "" {
+		ct = http.DetectContentType(icon)
+		if !strings.HasPrefix(ct, "image/") {
+			return FetchResultWithErrorf(http.StatusNotFound, "not an image")
+		}
 	}
+
+	res := Result{Icon: icon}
+	res.contentType = ct
 	// else leave it empty
 	return res, nil
 }).WithMaxEntries(200).WithRetriesExponentialBackoff(3).WithTTL(4 * time.Hour).Build()

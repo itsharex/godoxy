@@ -15,8 +15,8 @@ on:
       - "internal/api/v1/docs/swagger.json"
       - "Makefile"
       - ".github/workflows/cli-binary.yml"
-    tags-ignore:
-      - "**"
+    tags:
+      - v*
   workflow_dispatch:
 
 jobs:

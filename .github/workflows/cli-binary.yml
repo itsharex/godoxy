@@ -1,0 +1,60 @@
+name: GoDoxy CLI Binary
+
+on:
+  pull_request:
+    paths:
+      - "cmd/cli/**"
+      - "internal/api/v1/docs/swagger.json"
+      - "Makefile"
+      - ".github/workflows/cli-binary.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "cmd/cli/**"
+      - "internal/api/v1/docs/swagger.json"
+      - "Makefile"
+      - ".github/workflows/cli-binary.yml"
+    tags-ignore:
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+            binary_name: godoxy-cli-linux-amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            binary_name: godoxy-cli-linux-arm64
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build CLI
+        run: |
+          make CLI_BIN_PATH=bin/${{ matrix.binary_name }} build-cli
+
+      - name: Check binary
+        run: |
+          file bin/${{ matrix.binary_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary_name }}
+          path: bin/${{ matrix.binary_name }}

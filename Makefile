@@ -58,6 +58,7 @@ endif
 
 BUILD_FLAGS += -tags '$(GO_TAGS)' -ldflags='$(LDFLAGS)'
 BIN_PATH := $(shell pwd)/bin/${NAME}
+CLI_BIN_PATH ?= $(shell pwd)/bin/godoxy-cli
 
 export NAME
 export CGO_ENABLED
@@ -185,6 +186,13 @@ gen-api-types: gen-swagger
 	bunx --bun swagger-typescript-api generate --sort-types --generate-union-enums --axios --add-readonly --route-types \
 		 --responses -o ${WEBUI_DIR}/src/lib -n api.ts -p internal/api/v1/docs/swagger.json
 
-.PHONY: update-wiki
+gen-cli:
+	cd cmd/cli && go run ./gen
+
+build-cli: gen-cli
+	mkdir -p $(shell dirname ${CLI_BIN_PATH})
+	go build -C cmd/cli -o ${CLI_BIN_PATH} .
+
+.PHONY: gen-cli build-cli update-wiki
 update-wiki:
 	DOCS_DIR=${DOCS_DIR} REPO_URL=${REPO_URL} bun --bun scripts/update-wiki/main.ts

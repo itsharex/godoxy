@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/rs/zerolog"
@@ -195,21 +196,15 @@ func (m *Middleware) ServeHTTP(next http.HandlerFunc, w http.ResponseWriter, r *
 	}
 
 	if exec, ok := m.impl.(ResponseModifier); ok {
-		lrm := httputils.NewLazyResponseModifier(w, needsBuffering)
+		rm := httputils.NewResponseModifier(w)
 		defer func() {
-			_, err := lrm.FlushRelease()
+			_, err := rm.FlushRelease()
 			if err != nil {
 				m.LogError(r).Err(err).Msg("failed to flush response")
 			}
 		}()
-		next(lrm, r)
+		next(rm, r)
 
-		// Skip modification if response wasn't buffered (non-HTML content)
-		if !lrm.IsBuffered() {
-			return
-		}
-
-		rm := lrm.ResponseModifier()
 		currentBody := rm.BodyReader()
 		currentResp := &http.Response{
 			StatusCode:    rm.StatusCode(),
@@ -218,20 +213,31 @@ func (m *Middleware) ServeHTTP(next http.HandlerFunc, w http.ResponseWriter, r *
 			Body:          currentBody,
 			Request:       r,
 		}
-		if err := exec.modifyResponse(currentResp); err != nil {
+		allowBodyModification := canModifyResponseBody(currentResp)
+		respToModify := currentResp
+		if !allowBodyModification {
+			shadow := *currentResp
+			shadow.Body = eofReader{}
+			respToModify = &shadow
+		}
+		if err := exec.modifyResponse(respToModify); err != nil {
 			log.Err(err).Str("middleware", m.Name()).Str("url", fullURL(r)).Msg("failed to modify response")
 		}
 
 		// override the response status code
-		rm.WriteHeader(currentResp.StatusCode)
+		rm.WriteHeader(respToModify.StatusCode)
 
 		// overriding the response header
-		maps.Copy(rm.Header(), currentResp.Header)
+		maps.Copy(rm.Header(), respToModify.Header)
 
 		// override the content length and body if changed
-		if currentResp.Body != currentBody {
-			if err := rm.SetBody(currentResp.Body); err != nil {
-				m.LogError(r).Err(err).Msg("failed to set response body")
+		if respToModify.Body != currentBody {
+			if allowBodyModification {
+				if err := rm.SetBody(respToModify.Body); err != nil {
+					m.LogError(r).Err(err).Msg("failed to set response body")
+				}
+			} else {
+				respToModify.Body.Close()
 			}
 		}
 	} else {
@@ -239,10 +245,55 @@ func (m *Middleware) ServeHTTP(next http.HandlerFunc, w http.ResponseWriter, r *
 	}
 }
 
-// needsBuffering determines if a response should be buffered for modification.
-// Only HTML responses need buffering; streaming content (video, audio, etc.) should pass through.
-func needsBuffering(header http.Header) bool {
-	return httputils.GetContentType(header).IsHTML()
+func canModifyResponseBody(resp *http.Response) bool {
+	if hasNonIdentityEncoding(resp.TransferEncoding) {
+		return false
+	}
+	if hasNonIdentityEncoding(resp.Header.Values("Transfer-Encoding")) {
+		return false
+	}
+	if hasNonIdentityEncoding(resp.Header.Values("Content-Encoding")) {
+		return false
+	}
+	return isTextLikeMediaType(string(httputils.GetContentType(resp.Header)))
+}
+
+func hasNonIdentityEncoding(values []string) bool {
+	for _, value := range values {
+		for _, token := range strings.Split(value, ",") {
+			if strings.TrimSpace(token) == "" || strings.EqualFold(strings.TrimSpace(token), "identity") {
+				continue
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func isTextLikeMediaType(contentType string) bool {
+	if contentType == "" {
+		return false
+	}
+	contentType = strings.ToLower(contentType)
+	if strings.HasPrefix(contentType, "text/") {
+		return true
+	}
+	if contentType == "application/json" || strings.HasSuffix(contentType, "+json") {
+		return true
+	}
+	if contentType == "application/xml" || strings.HasSuffix(contentType, "+xml") {
+		return true
+	}
+	if strings.Contains(contentType, "yaml") || strings.Contains(contentType, "toml") {
+		return true
+	}
+	if strings.Contains(contentType, "javascript") || strings.Contains(contentType, "ecmascript") {
+		return true
+	}
+	if strings.Contains(contentType, "csv") {
+		return true
+	}
+	return contentType == "application/x-www-form-urlencoded"
 }
 
 func (m *Middleware) LogWarn(req *http.Request) *zerolog.Event {

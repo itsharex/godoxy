@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"maps"
 	"net/http"
 	"strconv"
 
@@ -46,9 +47,22 @@ func (m *middlewareChain) modifyResponse(resp *http.Response) error {
 	if len(m.modResps) == 0 {
 		return nil
 	}
+	allowBodyModification := canModifyResponseBody(resp)
 	for i, mr := range m.modResps {
-		if err := mr.modifyResponse(resp); err != nil {
+		respToModify := resp
+		if !allowBodyModification {
+			shadow := *resp
+			shadow.Body = eofReader{}
+			respToModify = &shadow
+		}
+		if err := mr.modifyResponse(respToModify); err != nil {
 			return gperr.PrependSubject(err, strconv.Itoa(i))
+		}
+		if !allowBodyModification {
+			resp.StatusCode = respToModify.StatusCode
+			if respToModify.Header != nil {
+				maps.Copy(resp.Header, respToModify.Header)
+			}
 		}
 	}
 	return nil

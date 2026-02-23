@@ -7,6 +7,7 @@ import (
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/yusing/godoxy/internal/common"
@@ -54,7 +55,7 @@ func (rt *requestRecorder) RoundTrip(req *http.Request) (resp *http.Response, er
 		resp = &http.Response{
 			Status:        http.StatusText(rt.args.respStatus),
 			StatusCode:    rt.args.respStatus,
-			Header:        testHeaders,
+			Header:        maps.Clone(testHeaders),
 			Body:          io.NopCloser(bytes.NewReader(rt.args.respBody)),
 			ContentLength: int64(len(rt.args.respBody)),
 			Request:       req,
@@ -65,7 +66,25 @@ func (rt *requestRecorder) RoundTrip(req *http.Request) (resp *http.Response, er
 		return nil, err
 	}
 	maps.Copy(resp.Header, rt.args.respHeaders)
+	if transferEncoding := resp.Header.Values("Transfer-Encoding"); len(transferEncoding) > 0 {
+		resp.TransferEncoding = parseHeaderTokens(transferEncoding)
+		resp.ContentLength = -1
+	}
 	return resp, nil
+}
+
+func parseHeaderTokens(values []string) []string {
+	var tokens []string
+	for _, value := range values {
+		for token := range strings.SplitSeq(value, ",") {
+			token = strings.TrimSpace(token)
+			if token == "" {
+				continue
+			}
+			tokens = append(tokens, token)
+		}
+	}
+	return tokens
 }
 
 type TestResult struct {

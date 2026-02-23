@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,10 +15,25 @@ type testPriority struct {
 }
 
 var test = NewMiddleware[testPriority]()
+var responseRewrite = NewMiddleware[testResponseRewrite]()
 
 func (t testPriority) before(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Add("Test-Value", strconv.Itoa(t.Value))
 	return true
+}
+
+type testResponseRewrite struct {
+	StatusCode int    `json:"status_code"`
+	HeaderKey  string `json:"header_key"`
+	HeaderVal  string `json:"header_val"`
+	Body       string `json:"body"`
+}
+
+func (t testResponseRewrite) modifyResponse(resp *http.Response) error {
+	resp.StatusCode = t.StatusCode
+	resp.Header.Set(t.HeaderKey, t.HeaderVal)
+	resp.Body = io.NopCloser(strings.NewReader(t.Body))
+	return nil
 }
 
 func TestMiddlewarePriority(t *testing.T) {
@@ -34,4 +50,86 @@ func TestMiddlewarePriority(t *testing.T) {
 	res, err := newMiddlewaresTest(chain, nil)
 	expect.NoError(t, err)
 	expect.Equal(t, strings.Join(res.ResponseHeaders["Test-Value"], ","), "3,0,1,2")
+}
+
+func TestMiddlewareResponseRewriteGate(t *testing.T) {
+	opts := OptionsRaw{
+		"status_code": 418,
+		"header_key":  "X-Rewrite",
+		"header_val":  "1",
+		"body":        "rewritten-body",
+	}
+
+	tests := []struct {
+		name        string
+		respHeaders http.Header
+		respBody    []byte
+		expectBody  string
+	}{
+		{
+			name: "allow_body_rewrite_for_html",
+			respHeaders: http.Header{
+				"Content-Type": []string{"text/html; charset=utf-8"},
+			},
+			respBody:   []byte("<html><body>original</body></html>"),
+			expectBody: "rewritten-body",
+		},
+		{
+			name: "allow_body_rewrite_for_json",
+			respHeaders: http.Header{
+				"Content-Type": []string{"application/json"},
+			},
+			respBody:   []byte(`{"message":"original"}`),
+			expectBody: "rewritten-body",
+		},
+		{
+			name: "allow_body_rewrite_for_yaml",
+			respHeaders: http.Header{
+				"Content-Type": []string{"application/yaml"},
+			},
+			respBody:   []byte("k: v"),
+			expectBody: "rewritten-body",
+		},
+		{
+			name: "block_body_rewrite_for_binary_content",
+			respHeaders: http.Header{
+				"Content-Type": []string{"application/octet-stream"},
+			},
+			respBody:   []byte("binary"),
+			expectBody: "binary",
+		},
+		{
+			name: "block_body_rewrite_for_transfer_encoded_html",
+			respHeaders: http.Header{
+				"Content-Type":      []string{"text/html"},
+				"Transfer-Encoding": []string{"chunked"},
+			},
+			respBody:   []byte("<html><body>original</body></html>"),
+			expectBody: "<html><body>original</body></html>",
+		},
+		{
+			name: "block_body_rewrite_for_content_encoded_html",
+			respHeaders: http.Header{
+				"Content-Type":     []string{"text/html"},
+				"Content-Encoding": []string{"gzip"},
+			},
+			respBody:   []byte("<html><body>original</body></html>"),
+			expectBody: "<html><body>original</body></html>",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := newMiddlewareTest(responseRewrite, &testArgs{
+				middlewareOpt: opts,
+				respHeaders:   tc.respHeaders,
+				respBody:      tc.respBody,
+				respStatus:    http.StatusOK,
+			})
+			expect.NoError(t, err)
+			expect.Equal(t, result.ResponseStatus, 418)
+			expect.Equal(t, result.ResponseHeaders.Get("X-Rewrite"), "1")
+			expect.Equal(t, string(result.Data), tc.expectBody)
+		})
+	}
 }

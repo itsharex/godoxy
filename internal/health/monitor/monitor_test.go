@@ -171,12 +171,12 @@ func TestNotification_ServiceRecoversBeforeThreshold(t *testing.T) {
 	err = mon.checkUpdateHealth()
 	require.NoError(t, err)
 
-	// Should have 1 up notification, but no down notification
-	// because threshold was never met
+	// Should have no notifications because threshold was never met.
+	// Recovery notification is only sent after a down notification was sent.
 	up, down, last := tracker.getStats()
 	require.Equal(t, 0, down)
-	require.Equal(t, 1, up)
-	require.Equal(t, "up", last)
+	require.Equal(t, 0, up)
+	require.Empty(t, last)
 }
 
 func TestNotification_ConsecutiveFailureReset(t *testing.T) {
@@ -210,10 +210,11 @@ func TestNotification_ConsecutiveFailureReset(t *testing.T) {
 	err = mon.checkUpdateHealth()
 	require.NoError(t, err)
 
-	// Should have 1 up notification, consecutive failures should reset
+	// Should have no notifications, consecutive failures should reset.
+	// Recovery notification is only sent after a down notification was sent.
 	up, down, _ := tracker.getStats()
 	require.Equal(t, 0, down)
-	require.Equal(t, 1, up)
+	require.Equal(t, 0, up)
 
 	// Go down again - consecutive counter should start from 0
 	mon.checkHealth = func(u *url.URL) (types.HealthCheckResult, error) {
@@ -227,7 +228,7 @@ func TestNotification_ConsecutiveFailureReset(t *testing.T) {
 	// Should still have no down notifications (need 2 consecutive)
 	up, down, _ = tracker.getStats()
 	require.Equal(t, 0, down)
-	require.Equal(t, 1, up)
+	require.Equal(t, 0, up)
 
 	// Second consecutive failure - should trigger notification
 	err = mon.checkUpdateHealth()
@@ -236,7 +237,7 @@ func TestNotification_ConsecutiveFailureReset(t *testing.T) {
 	// Now should have down notification
 	up, down, last := tracker.getStats()
 	require.Equal(t, 1, down)
-	require.Equal(t, 1, up)
+	require.Equal(t, 0, up)
 	require.Equal(t, "down", last)
 }
 
@@ -279,11 +280,11 @@ func TestNotification_ContextCancellation(t *testing.T) {
 	require.Equal(t, 0, up)
 }
 
-func TestImmediateUpNotification(t *testing.T) {
+func TestImmediateUpNotificationAfterDownNotification(t *testing.T) {
 	config := types.HealthCheckConfig{
 		Interval: 100 * time.Millisecond,
 		Timeout:  50 * time.Millisecond,
-		Retries:  2, // NotifyAfter should not affect up notifications
+		Retries:  2,
 	}
 
 	mon, tracker := createTestMonitor(config, func(u *url.URL) (types.HealthCheckResult, error) {
@@ -292,6 +293,7 @@ func TestImmediateUpNotification(t *testing.T) {
 
 	// Start unhealthy
 	mon.status.Store(types.StatusUnhealthy)
+	mon.downNotificationSent.Store(true)
 
 	// Set to healthy
 	mon.checkHealth = func(u *url.URL) (types.HealthCheckResult, error) {
@@ -302,7 +304,7 @@ func TestImmediateUpNotification(t *testing.T) {
 	err := mon.checkUpdateHealth()
 	require.NoError(t, err)
 
-	// Up notification should happen immediately regardless of NotifyAfter setting
+	// Up notification should happen immediately once a prior down notification exists.
 	require.Equal(t, types.StatusHealthy, mon.Status())
 
 	// Should have exactly 1 up notification immediately

@@ -245,9 +245,11 @@ func (mon *monitor) checkUpdateHealth() error {
 	// change of status
 	if result.Healthy != (lastStatus == types.StatusHealthy) {
 		if result.Healthy {
-			mon.notifyServiceUp(&logger, &result)
 			mon.numConsecFailures.Store(0)
-			mon.downNotificationSent.Store(false) // Reset notification state when service comes back up
+			if mon.downNotificationSent.Load() { // Only notify if the service down has been notified
+				mon.notifyServiceUp(&logger, &result)
+				mon.downNotificationSent.Store(false) // Reset notification state when service comes back up
+			}
 		} else if mon.config.Retries < 0 {
 			// immediate notification when retries < 0
 			mon.notifyServiceDown(&logger, &result)

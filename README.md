@@ -36,7 +36,6 @@ Have questions? Ask [ChatGPT](https://chatgpt.com/g/g-6825390374b481919ad482f2e4
 - [Proxmox Integration](#proxmox-integration)
   - [Automatic Route Binding](#automatic-route-binding)
   - [WebUI Management](#webui-management)
-  - [API Endpoints](#api-endpoints)
 - [Update / Uninstall system agent](#update--uninstall-system-agent)
 - [Screenshots](#screenshots)
   - [idlesleeper](#idlesleeper)
@@ -167,23 +166,8 @@ routes:
 From the WebUI, you can:
 
 - **LXC Lifecycle Control**: Start, stop, restart containers
-- **Node Logs**: Stream real-time journalctl output from nodes
-- **LXC Logs**: Stream real-time journalctl output from containers
-
-### API Endpoints
-
-```http
-# Node journalctl (WebSocket)
-GET /api/v1/proxmox/journalctl/:node
-
-# LXC journalctl (WebSocket)
-GET /api/v1/proxmox/journalctl/:node/:vmid
-
-# LXC lifecycle control
-POST /api/v1/proxmox/lxc/:node/:vmid/start
-POST /api/v1/proxmox/lxc/:node/:vmid/stop
-POST /api/v1/proxmox/lxc/:node/:vmid/restart
-```
+- **Node Logs**: Stream real-time journalctl or log files output from nodes
+- **LXC Logs**: Stream real-time journalctl or log files output from containers
 
 ## Update / Uninstall system agent
 

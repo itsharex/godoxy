@@ -37,7 +37,6 @@
 - [Proxmox 整合](#proxmox-整合)
   - [自動路由綁定](#自動路由綁定)
   - [WebUI 管理](#webui-管理)
-  - [API 端點](#api-端點)
 - [更新 / 卸載系統代理 (System Agent)](#更新--卸載系統代理-system-agent)
 - [截圖](#截圖)
   - [閒置休眠](#閒置休眠)
@@ -183,23 +182,8 @@ routes:
 您可以從 WebUI：
 
 - **LXC 生命週期控制**：啟動、停止、重新啟動容器
-- **節點日誌**：串流來自節點的即時 journalctl 輸出
-- **LXC 日誌**：串流來自容器的即時 journalctl 輸出
-
-### API 端點
-
-```http
-# 節點 journalctl (WebSocket)
-GET /api/v1/proxmox/journalctl/:node
-
-# LXC journalctl (WebSocket)
-GET /api/v1/proxmox/journalctl/:node/:vmid
-
-# LXC 生命週期控制
-POST /api/v1/proxmox/lxc/:node/:vmid/start
-POST /api/v1/proxmox/lxc/:node/:vmid/stop
-POST /api/v1/proxmox/lxc/:node/:vmid/restart
-```
+- **節點日誌**：串流節點的即時 journalctl 或日誌檔案輸出
+- **LXC 日誌**：串流容器的即時 journalctl 或日誌檔案輸出
 
 ## 更新 / 卸載系統代理 (System Agent)
 

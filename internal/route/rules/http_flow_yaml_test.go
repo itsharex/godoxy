@@ -23,8 +23,9 @@ import (
 )
 
 // mockUpstream creates a simple upstream handler for testing
-func mockUpstream(body string) http.HandlerFunc {
+func mockUpstream(status int, body string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(status)
 		w.Write([]byte(body))
 	}
 }
@@ -47,7 +48,7 @@ func parseRules(data string, target *Rules) error {
 	return err
 }
 
-func TestHTTPFlow_BasicPreRules(t *testing.T) {
+func TestHTTPFlow_BasicPreRulesYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Custom-Header", r.Header.Get("X-Custom-Header"))
 		w.WriteHeader(http.StatusOK)
@@ -74,8 +75,8 @@ func TestHTTPFlow_BasicPreRules(t *testing.T) {
 	assert.Equal(t, "test-value", w.Header().Get("X-Custom-Header"))
 }
 
-func TestHTTPFlow_BypassRule(t *testing.T) {
-	upstream := mockUpstream("upstream response")
+func TestHTTPFlow_BypassRuleYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "upstream response")
 
 	var rules Rules
 	err := parseRules(`
@@ -99,8 +100,8 @@ func TestHTTPFlow_BypassRule(t *testing.T) {
 	assert.Equal(t, "upstream response", w.Body.String())
 }
 
-func TestHTTPFlow_TerminatingCommand(t *testing.T) {
-	upstream := mockUpstream("should not be called")
+func TestHTTPFlow_TerminatingCommandYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "should not be called")
 
 	var rules Rules
 	err := parseRules(`
@@ -120,13 +121,13 @@ func TestHTTPFlow_TerminatingCommand(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Equal(t, 403, w.Code)
 	assert.Equal(t, "Forbidden\n", w.Body.String())
 	assert.Empty(t, w.Header().Get("X-Header"))
 }
 
-func TestHTTPFlow_RedirectFlow(t *testing.T) {
-	upstream := mockUpstream("should not be called")
+func TestHTTPFlow_RedirectFlowYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "should not be called")
 
 	var rules Rules
 	err := parseRules(`
@@ -143,11 +144,11 @@ func TestHTTPFlow_RedirectFlow(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusTemporaryRedirect, w.Code) // TemporaryRedirect
+	assert.Equal(t, 307, w.Code) // TemporaryRedirect
 	assert.Equal(t, "/new-path", w.Header().Get("Location"))
 }
 
-func TestHTTPFlow_RewriteFlow(t *testing.T) {
+func TestHTTPFlow_RewriteFlowYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("path: " + r.URL.Path))
@@ -172,7 +173,7 @@ func TestHTTPFlow_RewriteFlow(t *testing.T) {
 	assert.Equal(t, "path: /v1/users", w.Body.String())
 }
 
-func TestHTTPFlow_MultiplePreRules(t *testing.T) {
+func TestHTTPFlow_MultiplePreRulesYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("upstream: " + r.Header.Get("X-Request-Id")))
@@ -201,7 +202,7 @@ func TestHTTPFlow_MultiplePreRules(t *testing.T) {
 	assert.Equal(t, "token-456", req.Header.Get("X-Auth-Token"))
 }
 
-func TestHTTPFlow_PostResponseRule(t *testing.T) {
+func TestHTTPFlow_PostResponseRuleYAML(t *testing.T) {
 	upstream := mockUpstreamWithHeaders(http.StatusOK, "success", http.Header{
 		"X-Upstream": []string{"upstream-value"},
 	})
@@ -229,11 +230,10 @@ func TestHTTPFlow_PostResponseRule(t *testing.T) {
 
 	// Check log file
 	content := TestFileContent(tempFile)
-	require.NoError(t, err)
 	assert.Equal(t, "GET 200\n", string(content))
 }
 
-func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
+func TestHTTPFlow_ResponseRuleWithStatusConditionYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/success" {
 			w.WriteHeader(http.StatusOK)
@@ -246,14 +246,15 @@ func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
 
 	var rules Rules
 
-	// Create a temporary file for logging
-	tempFile := TestRandomFileName()
+	errorLog := TestRandomFileName()
+	infoLog := TestRandomFileName()
 
 	err := parseRules(fmt.Sprintf(`
-- name: log-errors
-  on: status 4xx
+- on: status 4xx
   do: log error %s "$req_url returned $status_code"
-`, tempFile), &rules)
+- on: status 200
+  do: log info %s "$req_url returned $status_code"
+`, errorLog, infoLog), &rules)
 	require.NoError(t, err)
 
 	handler := rules.BuildHandler(upstream)
@@ -273,14 +274,18 @@ func TestHTTPFlow_ResponseRuleWithStatusCondition(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w2.Code)
 
 	// Check log file
-	content := TestFileContent(tempFile)
-	require.NoError(t, err)
+	content := TestFileContent(errorLog)
 	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
 	require.Len(t, lines, 1, "only 4xx requests should be logged")
 	assert.Equal(t, "/notfound returned 404", lines[0])
+
+	infoContent := TestFileContent(infoLog)
+	lines = strings.Split(strings.TrimSpace(string(infoContent)), "\n")
+	require.Len(t, lines, 1, "only 200 requests should be logged")
+	assert.Equal(t, "/success returned 200", lines[0])
 }
 
-func TestHTTPFlow_ConditionalRules(t *testing.T) {
+func TestHTTPFlow_ConditionalRulesYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("hello " + r.Header.Get("X-Username")))
@@ -320,22 +325,21 @@ func TestHTTPFlow_ConditionalRules(t *testing.T) {
 	assert.Equal(t, "anonymous", w2.Header().Get("X-Username"))
 }
 
-func TestHTTPFlow_ComplexFlowWithPreAndPostRules(t *testing.T) {
+func TestHTTPFlow_ComplexFlowWithPreAndPostRulesYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate different responses based on path
 		if r.URL.Path == "/protected" {
 			if r.Header.Get("X-Auth") != "valid" {
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("unauthorized"))
+				fmt.Fprint(w, "unauthorized")
 				return
 			}
 		}
 		w.Header().Set("X-Response-Time", "100ms")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		fmt.Fprint(w, "success")
 	})
 
-	// Create temporary files for logging
 	logFile := TestRandomFileName()
 	errorLogFile := TestRandomFileName()
 
@@ -402,8 +406,8 @@ func TestHTTPFlow_ComplexFlowWithPreAndPostRules(t *testing.T) {
 	assert.Equal(t, "ERROR: GET /protected 401", lines[1])
 }
 
-func TestHTTPFlow_DefaultRule(t *testing.T) {
-	upstream := mockUpstream("upstream response")
+func TestHTTPFlow_DefaultRuleYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "upstream response")
 
 	var rules Rules
 	err := parseRules(`
@@ -426,21 +430,57 @@ func TestHTTPFlow_DefaultRule(t *testing.T) {
 	assert.Equal(t, "true", w1.Header().Get("X-Default-Applied"))
 	assert.Empty(t, w1.Header().Get("X-Special-Handled"))
 
-	// Test special rule + default rule
+	// Test special rule (default should not run)
 	req2 := httptest.NewRequest(http.MethodGet, "/special", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
 	assert.Equal(t, http.StatusOK, w2.Code)
-	assert.Equal(t, "true", w2.Header().Get("X-Default-Applied"))
+	assert.Empty(t, w2.Header().Get("X-Default-Applied"))
 	assert.Equal(t, "true", w2.Header().Get("X-Special-Handled"))
 }
 
-func TestHTTPFlow_HeaderManipulation(t *testing.T) {
+func TestHTTPFlow_DefaultRuleWithOnDefaultYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "upstream response")
+
+	var rules Rules
+	err := parseRules(`
+- name: default-on-rule
+  on: default
+  do: set resp_header X-Default-Applied true
+- name: special-rule
+  on: path /special
+  do: set resp_header X-Special-Handled true
+`, &rules)
+	require.NoError(t, err)
+
+	handler := rules.BuildHandler(upstream)
+
+	// Test default rule on regular request
+	req1 := httptest.NewRequest(http.MethodGet, "/regular", nil)
+	w1 := httptest.NewRecorder()
+	handler.ServeHTTP(w1, req1)
+
+	assert.Equal(t, http.StatusOK, w1.Code)
+	assert.Equal(t, "true", w1.Header().Get("X-Default-Applied"))
+	assert.Empty(t, w1.Header().Get("X-Special-Handled"))
+
+	// Test special rule on matching request (default should not run)
+	req2 := httptest.NewRequest(http.MethodGet, "/special", nil)
+	w2 := httptest.NewRecorder()
+	handler.ServeHTTP(w2, req2)
+
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Empty(t, w2.Header().Get("X-Default-Applied"))
+	assert.Equal(t, "true", w2.Header().Get("X-Special-Handled"))
+}
+
+func TestHTTPFlow_HeaderManipulationYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Echo back a header
 		headerValue := r.Header.Get("X-Test-Header")
 		w.Header().Set("X-Echoed-Header", headerValue)
+		w.Header().Set("X-Secret", "sensitive-data")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("header echoed"))
 	})
@@ -460,7 +500,6 @@ func TestHTTPFlow_HeaderManipulation(t *testing.T) {
 	handler := rules.BuildHandler(upstream)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Secret", "secret-value")
 	req.Header.Set("X-Test-Header", "original-value")
 	w := httptest.NewRecorder()
 
@@ -469,11 +508,10 @@ func TestHTTPFlow_HeaderManipulation(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "modified-value", w.Header().Get("X-Echoed-Header"))
 	assert.Equal(t, "custom-value", w.Header().Get("X-Custom-Header"))
-	// Ensure the secret header was removed and not passed to upstream
-	// (we can't directly test this, but the upstream shouldn't see it)
+	assert.Empty(t, w.Header().Get("X-Secret"))
 }
 
-func TestHTTPFlow_QueryParameterHandling(t *testing.T) {
+func TestHTTPFlow_QueryParameterHandlingYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 		w.WriteHeader(http.StatusOK)
@@ -500,13 +538,15 @@ func TestHTTPFlow_QueryParameterHandling(t *testing.T) {
 	assert.Equal(t, "query: added-value", w.Body.String())
 }
 
-func TestHTTPFlow_ServeCommand(t *testing.T) {
+func TestHTTPFlow_ServeCommandYAML(t *testing.T) {
 	// Create a temporary directory with test files
-	tempDir := t.TempDir()
+	tempDir, err := os.MkdirTemp("", "test-serve-*")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempDir)
 
 	// Create test files directly in the temp directory
 	testFile := filepath.Join(tempDir, "index.html")
-	err := os.WriteFile(testFile, []byte("<h1>Test Page</h1>"), 0o644)
+	err = os.WriteFile(testFile, []byte("<h1>Test Page</h1>"), 0o644)
 	require.NoError(t, err)
 
 	var rules Rules
@@ -517,7 +557,7 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 `, tempDir), &rules)
 	require.NoError(t, err)
 
-	handler := rules.BuildHandler(mockUpstream("should not be called"))
+	handler := rules.BuildHandler(mockUpstream(http.StatusOK, "should not be called"))
 
 	// Test serving a file - serve command serves files relative to the root directory
 	// The path /files/index.html gets mapped to tempDir + "/files/index.html"
@@ -546,7 +586,7 @@ func TestHTTPFlow_ServeCommand(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w2.Code)
 }
 
-func TestHTTPFlow_ProxyCommand(t *testing.T) {
+func TestHTTPFlow_ProxyCommandYAML(t *testing.T) {
 	// Create a mock upstream server
 	upstreamServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Upstream-Header", "upstream-value")
@@ -563,7 +603,7 @@ func TestHTTPFlow_ProxyCommand(t *testing.T) {
 `, upstreamServer.URL), &rules)
 	require.NoError(t, err)
 
-	handler := rules.BuildHandler(mockUpstream("should not be called"))
+	handler := rules.BuildHandler(mockUpstream(http.StatusOK, "should not be called"))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
 	w := httptest.NewRecorder()
@@ -576,11 +616,28 @@ func TestHTTPFlow_ProxyCommand(t *testing.T) {
 	assert.Equal(t, "upstream-value", w.Header().Get("X-Upstream-Header"))
 }
 
-func TestHTTPFlow_NotifyCommand(t *testing.T) {
-	// TODO:
+func TestHTTPFlow_NotifyCommandYAML(t *testing.T) {
+	upstream := mockUpstream(http.StatusOK, "ok")
+
+	var rules Rules
+	err := parseRules(`
+- name: notify-rule
+  on: path /notify
+  do: notify info test-provider "title $req_method" "body $req_url $status_code"
+`, &rules)
+	require.NoError(t, err)
+
+	handler := rules.BuildHandler(upstream)
+
+	req := httptest.NewRequest(http.MethodGet, "/notify", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "ok", w.Body.String())
 }
 
-func TestHTTPFlow_FormConditions(t *testing.T) {
+func TestHTTPFlow_FormConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("form processed"))
@@ -620,7 +677,7 @@ func TestHTTPFlow_FormConditions(t *testing.T) {
 	assert.Equal(t, "john@example.com", w2.Header().Get("X-Email"))
 }
 
-func TestHTTPFlow_RemoteConditions(t *testing.T) {
+func TestHTTPFlow_RemoteConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("remote processed"))
@@ -654,11 +711,11 @@ func TestHTTPFlow_RemoteConditions(t *testing.T) {
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
-	assert.Equal(t, http.StatusForbidden, w2.Code)
+	assert.Equal(t, 403, w2.Code)
 	assert.Equal(t, "Private network blocked\n", w2.Body.String())
 }
 
-func TestHTTPFlow_BasicAuthConditions(t *testing.T) {
+func TestHTTPFlow_BasicAuthConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("auth processed"))
@@ -702,7 +759,7 @@ func TestHTTPFlow_BasicAuthConditions(t *testing.T) {
 	assert.Equal(t, "guest", w2.Header().Get("X-Auth-Status"))
 }
 
-func TestHTTPFlow_RouteConditions(t *testing.T) {
+func TestHTTPFlow_RouteConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("route processed"))
@@ -742,10 +799,10 @@ func TestHTTPFlow_RouteConditions(t *testing.T) {
 	assert.Equal(t, "frontend", w2.Header().Get("X-Route"))
 }
 
-func TestHTTPFlow_ResponseStatusConditions(t *testing.T) {
+func TestHTTPFlow_ResponseStatusConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("method not allowed"))
+		fmt.Fprint(w, "method not allowed")
 	})
 
 	var rules Rules
@@ -767,11 +824,11 @@ func TestHTTPFlow_ResponseStatusConditions(t *testing.T) {
 	assert.Equal(t, "error\n", w.Body.String())
 }
 
-func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
+func TestHTTPFlow_ResponseHeaderConditionsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Response-Header", "response header")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("processed"))
+		fmt.Fprint(w, "processed")
 	})
 
 	t.Run("any_value", func(t *testing.T) {
@@ -831,7 +888,65 @@ func TestHTTPFlow_ResponseHeaderConditions(t *testing.T) {
 	})
 }
 
-func TestHTTPFlow_ComplexRuleCombinations(t *testing.T) {
+func TestHTTPFlow_PreTermination_SkipsLaterPreCommands_ButRunsPostOnlyAndPostMatchersYAML(t *testing.T) {
+	upstreamCalled := false
+	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstreamCalled = true
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "upstream")
+	})
+
+	var rules Rules
+	err := parseRules(`
+- on: path /
+  do: error 403 blocked
+- on: path /
+  do: set resp_header X-Late should-run
+- on: status 4xx
+  do: set resp_header X-Post true
+`, &rules)
+	require.NoError(t, err)
+
+	handler := rules.BuildHandler(upstream)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	assert.False(t, upstreamCalled)
+	assert.Equal(t, 403, w.Code)
+	assert.Equal(t, "blocked\n", w.Body.String())
+	assert.Equal(t, "should-run", w.Header().Get("X-Late"))
+	assert.Equal(t, "true", w.Header().Get("X-Post"))
+}
+
+func TestHTTPFlow_PostRuleTermination_StopsRemainingCommandsInRuleYAML(t *testing.T) {
+	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
+	var rules Rules
+	err := parseRules(`
+- on: status 200
+  do: |
+    error 500 failed
+    set resp_header X-After should-not-run
+`, &rules)
+	require.NoError(t, err)
+
+	handler := rules.BuildHandler(upstream)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, "failed\n", w.Body.String())
+	assert.Empty(t, w.Header().Get("X-After"))
+}
+
+func TestHTTPFlow_ComplexRuleCombinationsYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("complex processed"))
@@ -887,12 +1002,12 @@ func TestHTTPFlow_ComplexRuleCombinations(t *testing.T) {
 	w3 := httptest.NewRecorder()
 	handler.ServeHTTP(w3, req3)
 
-	assert.Equal(t, 200, w3.Code)
+	assert.Equal(t, http.StatusOK, w3.Code)
 	assert.Equal(t, "public", w3.Header().Get("X-Access-Level"))
 	assert.Empty(t, w3.Header()["X-API-Version"])
 }
 
-func TestHTTPFlow_ResponseModifier(t *testing.T) {
+func TestHTTPFlow_ResponseModifierYAML(t *testing.T) {
 	upstream := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("original response"))

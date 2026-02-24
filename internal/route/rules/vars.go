@@ -152,6 +152,12 @@ func ExpandVars(w *httputils.ResponseModifier, req *http.Request, src string, ds
 					return phase, err
 				}
 				i = nextIdx
+				// Expand any nested $func(...) expressions in args
+				args, argPhase, err := expandArgs(args, w, req)
+				if err != nil {
+					return phase, err
+				}
+				phase |= argPhase
 				actual, err = getter.get(args, w, req)
 				if err != nil {
 					return phase, err
@@ -221,6 +227,18 @@ func extractArgs(src string, i int, funcName string) (args []string, nextIdx int
 			continue
 		}
 
+		// Nested function call: $func(...) as an argument
+		if ch == '$' && arg.Len() == 0 {
+			// Capture the entire $func(...) expression as a raw argument token
+			nestedEnd, nestedErr := extractNestedFuncExpr(src, nextIdx)
+			if nestedErr != nil {
+				return nil, 0, nestedErr
+			}
+			args = append(args, src[nextIdx:nestedEnd+1])
+			nextIdx = nestedEnd + 1
+			continue
+		}
+
 		if ch == ')' {
 			// End of arguments
 			if arg.Len() > 0 {
@@ -255,4 +273,71 @@ func extractArgs(src string, i int, funcName string) (args []string, nextIdx int
 		return nil, 0, ErrUnterminatedQuotes.Withf("func %q", funcName)
 	}
 	return nil, 0, ErrUnterminatedParenthesis.Withf("func %q", funcName)
+}
+
+// extractNestedFuncExpr finds the end index (inclusive) of a $func(...) expression
+// starting at position start in src. It handles nested parentheses.
+func extractNestedFuncExpr(src string, start int) (endIdx int, err error) {
+	// src[start] must be '$'
+	i := start + 1
+	// skip the function name (valid var name chars)
+	for i < len(src) && validVarNameCharset[src[i]] {
+		i++
+	}
+	if i >= len(src) || src[i] != '(' {
+		return 0, ErrUnterminatedParenthesis.Withf("nested func at position %d", start)
+	}
+	// Now find the matching closing parenthesis, respecting quotes and nesting
+	depth := 0
+	var quote byte
+	for i < len(src) {
+		ch := src[i]
+		if quote != 0 {
+			if ch == quote {
+				quote = 0
+			}
+			i++
+			continue
+		}
+		if quoteChars[ch] {
+			quote = ch
+			i++
+			continue
+		}
+		switch ch {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return i, nil
+			}
+		}
+		i++
+	}
+	if quote != 0 {
+		return 0, ErrUnterminatedQuotes.Withf("nested func at position %d", start)
+	}
+	return 0, ErrUnterminatedParenthesis.Withf("nested func at position %d", start)
+}
+
+// expandArgs expands any args that are nested dynamic var expressions (starting with '$').
+// It returns the expanded args and the combined phase flags.
+func expandArgs(args []string, w *httputils.ResponseModifier, req *http.Request) (expanded []string, phase PhaseFlag, err error) {
+	expanded = make([]string, len(args))
+	for i, arg := range args {
+		if len(arg) > 0 && arg[0] == '$' {
+			var buf strings.Builder
+			var argPhase PhaseFlag
+			argPhase, err = ExpandVars(w, req, arg, &buf)
+			if err != nil {
+				return nil, phase, err
+			}
+			phase |= argPhase
+			expanded[i] = buf.String()
+		} else {
+			expanded[i] = arg
+		}
+	}
+	return expanded, phase, nil
 }

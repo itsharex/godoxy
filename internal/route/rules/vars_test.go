@@ -189,6 +189,64 @@ func TestExtractArgs(t *testing.T) {
 	}
 }
 
+func TestExtractArgs_NestedFunc(t *testing.T) {
+	tests := []struct {
+		name        string
+		src         string
+		startPos    int
+		funcName    string
+		wantArgs    []string
+		wantNextIdx int
+		wantErr     bool
+	}{
+		{
+			name:        "nested func as single arg",
+			src:         "redacted($header(Authorization))",
+			startPos:    0,
+			funcName:    "redacted",
+			wantArgs:    []string{"$header(Authorization)"},
+			wantNextIdx: 31,
+		},
+		{
+			name:        "nested func with quoted arg inside",
+			src:         `redacted($header("X-Secret"))`,
+			startPos:    0,
+			funcName:    "redacted",
+			wantArgs:    []string{`$header("X-Secret")`},
+			wantNextIdx: 28,
+		},
+		{
+			name:        "nested func with two args inside",
+			src:         "redacted($header(X-Multi, 1))",
+			startPos:    0,
+			funcName:    "redacted",
+			wantArgs:    []string{"$header(X-Multi, 1)"},
+			wantNextIdx: 28,
+		},
+		{
+			name:     "nested func missing closing paren",
+			src:      "redacted($header(Authorization)",
+			startPos: 0,
+			funcName: "redacted",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			args, nextIdx, err := extractArgs(tt.src, tt.startPos, tt.funcName)
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.wantArgs, args)
+				require.Equal(t, tt.wantNextIdx, nextIdx)
+			}
+		})
+	}
+}
+
 func TestExpandVars(t *testing.T) {
 	// Create a comprehensive test request with form data
 	formData := url.Values{}
@@ -445,6 +503,27 @@ func TestExpandVars(t *testing.T) {
 			name:  "function variables with text",
 			input: "Header: $header(User-Agent), Status: $status_code",
 			want:  "Header: test-agent/1.0, Status: 200",
+		},
+		// $redacted function
+		{
+			name:  "redacted with plain string arg",
+			input: "$redacted(secret)",
+			want:  "se**et",
+		},
+		{
+			name:  "redacted wrapping header",
+			input: "$redacted($header(User-Agent))",
+			want:  "te**********.0",
+		},
+		{
+			name:  "redacted wrapping arg",
+			input: "$redacted($arg(param1))",
+			want:  "va**e1",
+		},
+		{
+			name:    "redacted with no args",
+			input:   "$redacted()",
+			wantErr: true,
 		},
 		// Escaped dollar signs
 		{

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	httputils "github.com/yusing/goutils/http"
+	strutils "github.com/yusing/goutils/strings"
 )
 
 var (
@@ -15,6 +16,7 @@ var (
 	VarQuery          = "arg"
 	VarForm           = "form"
 	VarPostForm       = "postform"
+	VarRedacted       = "redacted"
 )
 
 type dynamicVarGetter struct {
@@ -92,6 +94,17 @@ var dynamicVarSubsMap = map[string]dynamicVarGetter{
 				}
 			}
 			return getValueByKeyAtIndex(req.PostForm, key, index)
+		},
+	},
+	// VarRedacted wraps the result of its single argument (which may be another dynamic var
+	// expression, already expanded by expandArgs) with strutils.Redact.
+	VarRedacted: {
+		phase: PhaseNone,
+		get: func(args []string, w *httputils.ResponseModifier, req *http.Request) (string, error) {
+			if len(args) != 1 {
+				return "", ErrExpectOneArg
+			}
+			return strutils.Redact(args[0]), nil
 		},
 	},
 }

@@ -439,8 +439,19 @@ $remote_host     # Client IP
 # Dynamic variables
 $header(Name)           # Request header
 $header(Name, index)    # Header at index
+$resp_header(Name)      # Response header
 $arg(Name)              # Query argument
 $form(Name)             # Form field
+$postform(Name)         # POST form field
+$cookie(Name)           # Cookie value
+
+# Function composition: pass result of one function to another
+$redacted($header(Authorization))   # Redact the Authorization header value
+$redacted($arg(token))              # Redact a query parameter value
+$redacted($cookie(session))         # Redact a cookie value
+
+# $redacted: masks a value, showing only first 2 and last 2 characters
+$redacted(value)                    # Redact a plain string
 
 # Environment variables
 ${ENV_VAR}

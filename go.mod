@@ -58,13 +58,13 @@ require (
 	github.com/stretchr/testify v1.11.1 // testing framework
 	github.com/valyala/fasthttp v1.69.0 // fast http for health check
 	github.com/yusing/ds v0.4.1 // data structures and algorithms
-	github.com/yusing/godoxy/agent v0.0.0-20260218101334-add7884a365e
-	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260218101334-add7884a365e
+	github.com/yusing/godoxy/agent v0.0.0-20260224071728-0eba04510480
+	github.com/yusing/godoxy/internal/dnsproviders v0.0.0-20260224071728-0eba04510480
 	github.com/yusing/gointernals v0.2.0
 	github.com/yusing/goutils v0.7.0
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260218062549-0b0fa3a059ec
-	github.com/yusing/goutils/http/websocket v0.0.0-20260218062549-0b0fa3a059ec
-	github.com/yusing/goutils/server v0.0.0-20260218062549-0b0fa3a059ec
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260223150038-3be815cb6e3b
+	github.com/yusing/goutils/http/websocket v0.0.0-20260223150038-3be815cb6e3b
+	github.com/yusing/goutils/server v0.0.0-20260223150038-3be815cb6e3b
 )
 
 require (
@@ -88,7 +88,7 @@ require (
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/docker/go-connections v0.6.0
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/ebitengine/purego v0.9.1 // indirect
+	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
@@ -142,8 +142,8 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.267.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260217215200-42d3e9bedb6d // indirect
+	google.golang.org/api v0.268.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260223185530-2f722ef697dc // indirect
 	google.golang.org/grpc v1.79.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect

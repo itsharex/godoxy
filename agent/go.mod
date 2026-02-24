@@ -46,7 +46,7 @@ require (
 	github.com/docker/cli v29.2.1+incompatible // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/ebitengine/purego v0.9.1 // indirect
+	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
@@ -91,8 +91,8 @@ require (
 	github.com/valyala/fasthttp v1.69.0 // indirect
 	github.com/yusing/ds v0.4.1 // indirect
 	github.com/yusing/gointernals v0.2.0 // indirect
-	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260218062549-0b0fa3a059ec // indirect
-	github.com/yusing/goutils/http/websocket v0.0.0-20260218062549-0b0fa3a059ec // indirect
+	github.com/yusing/goutils/http/reverseproxy v0.0.0-20260223150038-3be815cb6e3b // indirect
+	github.com/yusing/goutils/http/websocket v0.0.0-20260223150038-3be815cb6e3b // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0 // indirect

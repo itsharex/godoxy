@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-yaml"
 	"github.com/yusing/godoxy/internal/common"
 	"github.com/yusing/godoxy/internal/route/rules"
 	apitypes "github.com/yusing/goutils/apitypes"
@@ -23,7 +24,7 @@ type RawRule struct {
 }
 
 type PlaygroundRequest struct {
-	Rules        []RawRule    `json:"rules" binding:"required"`
+	Rules        string       `json:"rules" binding:"required"`
 	MockRequest  MockRequest  `json:"mockRequest"`
 	MockResponse MockResponse `json:"mockResponse"`
 } // @name PlaygroundRequest
@@ -255,7 +256,35 @@ func handlerWithRecover(w http.ResponseWriter, r *http.Request, h http.HandlerFu
 	h(w, r)
 }
 
-func parseRules(rawRules []RawRule) ([]ParsedRule, rules.Rules, error) {
+func parseRules(config string) ([]ParsedRule, rules.Rules, error) {
+	config = strings.TrimSpace(config)
+	if config == "" {
+		return []ParsedRule{}, nil, nil
+	}
+
+	var rawRules []RawRule
+	if err := yaml.Unmarshal([]byte(config), &rawRules); err == nil && len(rawRules) > 0 {
+		return parseRawRules(rawRules)
+	}
+
+	var rulesList rules.Rules
+	if err := rulesList.Parse(config); err != nil {
+		return nil, nil, err
+	}
+
+	parsedRules := make([]ParsedRule, 0, len(rulesList))
+	for _, rule := range rulesList {
+		parsedRules = append(parsedRules, ParsedRule{
+			Name: rule.Name,
+			On:   rule.On.String(),
+			Do:   rule.Do.String(),
+		})
+	}
+
+	return parsedRules, rulesList, nil
+}
+
+func parseRawRules(rawRules []RawRule) ([]ParsedRule, rules.Rules, error) {
 	parsedRules := make([]ParsedRule, 0, len(rawRules))
 	rulesList := make(rules.Rules, 0, len(rawRules))
 

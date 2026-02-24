@@ -905,9 +905,7 @@ definitions:
       mockResponse:
         $ref: '#/definitions/MockResponse'
       rules:
-        items:
-          $ref: '#/definitions/routeApi.RawRule'
-        type: array
+        type: string
     required:
     - rules
     type: object
@@ -1856,15 +1854,6 @@ definitions:
       rootfs_usage:
         type: string
       uptime:
-        type: string
-    type: object
-  routeApi.RawRule:
-    properties:
-      do:
-        type: string
-      name:
-        type: string
-      "on":
         type: string
     type: object
   routeApi.RoutesByProvider:

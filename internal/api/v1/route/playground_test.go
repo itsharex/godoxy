@@ -22,13 +22,10 @@ func TestPlayground(t *testing.T) {
 		{
 			name: "simple path matching rule",
 			request: PlaygroundRequest{
-				Rules: []RawRule{
-					{
-						Name: "test rule",
-						On:   "path /api",
-						Do:   "pass",
-					},
-				},
+				Rules: `- name: test rule
+  on: path /api
+  do: pass
+`,
 				MockRequest: MockRequest{
 					Method: "GET",
 					Path:   "/api",
@@ -53,13 +50,10 @@ func TestPlayground(t *testing.T) {
 		{
 			name: "header matching rule",
 			request: PlaygroundRequest{
-				Rules: []RawRule{
-					{
-						Name: "check user agent",
-						On:   "header User-Agent Chrome",
-						Do:   "error 403 Forbidden",
-					},
-				},
+				Rules: `- name: check user agent
+  on: header User-Agent Chrome
+  do: error 403 Forbidden
+`,
 				MockRequest: MockRequest{
 					Method: "GET",
 					Path:   "/",
@@ -90,13 +84,10 @@ func TestPlayground(t *testing.T) {
 		{
 			name: "invalid rule syntax",
 			request: PlaygroundRequest{
-				Rules: []RawRule{
-					{
-						Name: "bad rule",
-						On:   "invalid_checker something",
-						Do:   "pass",
-					},
-				},
+				Rules: `- name: bad rule
+  on: invalid_checker something
+  do: pass
+`,
 				MockRequest: MockRequest{
 					Method: "GET",
 					Path:   "/",
@@ -115,13 +106,10 @@ func TestPlayground(t *testing.T) {
 		{
 			name: "rewrite path rule",
 			request: PlaygroundRequest{
-				Rules: []RawRule{
-					{
-						Name: "rewrite rule",
-						On:   "path glob(/api/*)",
-						Do:   "rewrite /api/ /v1/",
-					},
-				},
+				Rules: `- name: rewrite rule
+  on: path glob(/api/*)
+  do: rewrite /api/ /v1/
+`,
 				MockRequest: MockRequest{
 					Method: "GET",
 					Path:   "/api/users",
@@ -148,13 +136,10 @@ func TestPlayground(t *testing.T) {
 		{
 			name: "method matching rule",
 			request: PlaygroundRequest{
-				Rules: []RawRule{
-					{
-						Name: "block POST",
-						On:   "method POST",
-						Do:   `error "405" "Method Not Allowed"`,
-					},
-				},
+				Rules: `- name: block POST
+  on: method POST
+  do: error "405" "Method Not Allowed"
+`,
 				MockRequest: MockRequest{
 					Method: "POST",
 					Path:   "/api",
@@ -170,6 +155,63 @@ func TestPlayground(t *testing.T) {
 				}
 				if resp.FinalResponse.StatusCode != http.StatusMethodNotAllowed {
 					t.Errorf("expected status 405, got %d", resp.FinalResponse.StatusCode)
+				}
+			},
+		},
+		{
+			name: "block syntax default rule",
+			request: PlaygroundRequest{
+				Rules: `default {
+  pass
+}`,
+				MockRequest: MockRequest{
+					Method: "GET",
+					Path:   "/",
+				},
+			},
+			wantStatusCode: http.StatusOK,
+			checkResponse: func(t *testing.T, resp PlaygroundResponse) {
+				if len(resp.ParsedRules) != 1 {
+					t.Errorf("expected 1 parsed rule, got %d", len(resp.ParsedRules))
+				}
+				if resp.ParsedRules[0].ValidationError != nil {
+					t.Errorf("expected rule to be valid, got error: %v", resp.ParsedRules[0].ValidationError)
+				}
+				if !resp.UpstreamCalled {
+					t.Error("expected upstream to be called")
+				}
+			},
+		},
+		{
+			name: "block syntax conditional rule",
+			request: PlaygroundRequest{
+				Rules: `header User-Agent Chrome {
+  error 403 Forbidden
+}`,
+				MockRequest: MockRequest{
+					Method: "GET",
+					Path:   "/",
+					Headers: map[string][]string{
+						"User-Agent": {"Chrome"},
+					},
+				},
+			},
+			wantStatusCode: http.StatusOK,
+			checkResponse: func(t *testing.T, resp PlaygroundResponse) {
+				if len(resp.ParsedRules) != 1 {
+					t.Errorf("expected 1 parsed rule, got %d", len(resp.ParsedRules))
+				}
+				if resp.ParsedRules[0].ValidationError != nil {
+					t.Errorf("expected rule to be valid, got error: %v", resp.ParsedRules[0].ValidationError)
+				}
+				if len(resp.MatchedRules) != 1 {
+					t.Errorf("expected 1 matched rule, got %d", len(resp.MatchedRules))
+				}
+				if resp.FinalResponse.StatusCode != http.StatusForbidden {
+					t.Errorf("expected status 403, got %d", resp.FinalResponse.StatusCode)
+				}
+				if resp.UpstreamCalled {
+					t.Error("expected upstream not to be called")
 				}
 			},
 		},

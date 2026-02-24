@@ -6,8 +6,8 @@ export GOOS = linux
 
 REPO_URL ?= https://github.com/yusing/godoxy
 
-WEBUI_DIR ?= ../godoxy-webui
-DOCS_DIR ?= wiki
+WEBUI_DIR ?= $(shell pwd)/../godoxy-webui
+DOCS_DIR ?= ${WEBUI_DIR}/wiki
 
 ifneq ($(BRANCH), compat)
 	GO_TAGS = sonic
